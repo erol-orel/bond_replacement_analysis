@@ -19,6 +19,9 @@ portfolios over **01 Jul 2019 → 30 Jun 2026**, in CHF total return.
   drag that reorders the ranking of US-market bond substitutes.
 - **Robust beats optimal**: the in-sample max-Sharpe book overfits; the min-CVaR / static
   diversified book is the recommendation.
+- **Confirmed out-of-sample & by Monte Carlo**: walk-forward overfitting gap is negligible
+  (0.01–0.07 Sharpe); across 3,000 bootstrap histories the diversified book beats AP5 on
+  Sharpe in **98%** of paths with a smaller drawdown in **82–90%**.
 
 ➡️ Full write-up: **[`reports/thesis_report.md`](reports/thesis_report.md)**
 · Method: **[`docs/methodology.md`](docs/methodology.md)**
@@ -33,7 +36,9 @@ src/                 pipeline (pure Python: pandas/numpy/scipy/matplotlib/reques
   engine.py          VZ Smart Rebalancing + calendar/buy-hold + regime switching + metrics
   portfolios.py      AP5 benchmark + P1–P5 replacement books + rate-regime schedules
   optimize.py        max-Sharpe / min-var / min-CVaR / risk-parity (Dimson + CVaR aware)
-  run_analysis.py    master pipeline -> analysis/*.csv + reports/figures/*.png
+  run_analysis.py    master pipeline -> analysis/*.csv + reports/figures/01-07*.png
+  walkforward.py     out-of-sample walk-forward (look-ahead-free) -> figures 08-09
+  montecarlo.py      block-bootstrap Monte Carlo distributions -> figures 10-12
 analysis/            output tables (metrics, weights, stress, frontier, ...)
 reports/             thesis_report.md + figures/
 docs/                methodology.md, thesis_guidance.md, source_materials/ (mandate,
@@ -46,7 +51,9 @@ data/                proxy_map.csv, raw/ (per-ticker), processed/ (CHF prices & 
 pip install pandas numpy scipy matplotlib requests
 export REQUESTS_CA_BUNDLE=/root/.ccr/ca-bundle.crt SSL_CERT_FILE=$REQUESTS_CA_BUNDLE
 python src/download_data.py     # pull & build data/processed/*.csv
-python src/run_analysis.py      # build analysis/*.csv and reports/figures/*.png
+python src/run_analysis.py      # analysis/*.csv and reports/figures/01-07*.png
+python src/walkforward.py       # out-of-sample walk-forward (figures 08-09)
+python src/montecarlo.py        # block-bootstrap Monte Carlo (figures 10-12)
 ```
 
 ## Portfolios
