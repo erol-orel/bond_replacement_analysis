@@ -31,6 +31,19 @@ def _full(d: dict) -> dict:
     return w
 
 
+def _normbook(w: dict) -> dict:
+    """Expand a sparse weight dict to the full universe and renormalise to sum exactly 1
+    (tolerant of optimiser rounding residuals)."""
+    tot = sum(w.values())
+    w = {k: v / tot for k, v in w.items()}
+    full = {k: 0.0 for k in UNIVERSE}
+    full.update(w)
+    s = sum(full.values())
+    kmax = max(full, key=full.get)
+    full[kmax] += 1.0 - s
+    return full
+
+
 # --------------------------------------------------------------------- static books
 AP5 = _full(AP5_TARGET)                                     # P0 benchmark
 

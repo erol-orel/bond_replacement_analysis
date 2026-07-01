@@ -131,13 +131,32 @@ Objectives: `max_sharpe`, `min_variance`, `min_cvar` (95%), `risk_parity`,
   (2022-01→10), SVB bank stress (Mar-2023), plus the full period. Results in
   `analysis/stress_windows.csv`.
 
+## 8b. Robustness: out-of-sample & Monte Carlo
+
+- **Walk-forward** (`src/walkforward.py`): expanding-window, look-ahead-free optimisation.
+  Initial 24-month burn-in, re-estimate every 6 months on all data up to that date, apply
+  to the next unseen block (reusing the engine's `target_schedule`). OOS window
+  2021-07 → 2026-06. We report OOS metrics and the **in-sample-vs-OOS Sharpe gap** against a
+  full-sample look-ahead optimum (the "cheating" upper bound). Outputs:
+  `analysis/walkforward_*.csv`, figures 08–09.
+- **Block-bootstrap Monte Carlo** (`src/montecarlo.py`): stationary bootstrap (Politis-Romano;
+  geometric blocks, mean ≈ 20 trading days) resampling **whole return rows jointly** to
+  preserve cross-asset correlation, into **3,000 synthetic 7-year paths**. Portfolios are
+  evaluated **constant-mix** (daily-rebalanced) — a path maps to portfolio returns by a
+  matrix product; calendar/regime books (P4/P5, walk-forward) are excluded because bootstrap
+  shuffling destroys their time alignment. We report percentile distributions of
+  CAGR/vol/Sharpe/MaxDD and **P(beat AP5 benchmark)**. Outputs:
+  `analysis/montecarlo_*.csv`, figures 10–12.
+
 ## 9. Reproduce
 
 ```bash
 pip install pandas numpy scipy matplotlib requests
 export REQUESTS_CA_BUNDLE=/root/.ccr/ca-bundle.crt SSL_CERT_FILE=$REQUESTS_CA_BUNDLE
 python src/download_data.py      # -> data/processed/*.csv
-python src/run_analysis.py       # -> analysis/*.csv, reports/figures/*.png
+python src/run_analysis.py       # -> analysis/*.csv, reports/figures/01-07*.png
+python src/walkforward.py        # -> analysis/walkforward_*.csv, figures 08-09
+python src/montecarlo.py         # -> analysis/montecarlo_*.csv, figures 10-12
 ```
 
 ## 10. Known limitations
