@@ -1,0 +1,8 @@
+,swiss_equity,world_equity,swiss_bonds,world_bonds,real_estate,cash,gold,convertibles,clo,infrastructure,managed_futures,private_credit,ils
+P0_AP5_benchmark,0.25,0.25,0.168,0.252,0.05,0.03,0.0,0.0,0.0,0.0,0.0,0.0,0.0
+P1_swiss_bonds->CLO,0.25,0.25,0.0,0.252,0.05,0.03,0.0,0.0,0.168,0.0,0.0,0.0,0.0
+P2_swiss_bonds->diversified,0.25,0.25,0.0,0.252,0.05,0.03,0.042,0.0,0.084,0.0,0.0,0.0,0.042
+P3_draft_recommended,0.25,0.25,0.084,0.138,0.05,0.03,0.03,0.01,0.05,0.05,0.028,0.01,0.02
+O1_opt_max_sharpe,0.25,0.25,0.0346,0.0,0.05,0.03,0.08,0.05,0.1254,0.0,0.08,0.0,0.05
+O2_opt_min_variance,0.25,0.25,0.1369,0.1225,0.05,0.03,0.0,0.0,0.15,0.0,0.0,0.0,0.0106
+O3_opt_min_cvar,0.25,0.25,0.0637,0.1563,0.05,0.03,0.0,0.0,0.15,0.0,0.0,0.0,0.05
