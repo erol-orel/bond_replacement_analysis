@@ -1,0 +1,14 @@
+sleeve,ticker,native_ccy,chf_hedged,ap5_weight,description
+swiss_equity,CHSPI.SW,CHF,n/a (CHF),0.25,iShares Core SPI (Swiss Performance Index TR)
+world_equity,XDWL.SW,CHF,n/a (CHF),0.25,"Xtrackers MSCI World (CHF listing, UNHEDGED)"
+swiss_bonds,CSBGC0.SW,CHF,n/a (CHF),0.168,"iShares Core CHF Swiss bond (SBI-type, CHF)"
+world_bonds,AGGS.SW,CHF,n/a (CHF),0.252,iShares Global Aggregate Bond CHF-HEDGED
+real_estate,CHSRI.SW,CHF,n/a (CHF),0.05,iShares Swiss Property / SXI Real Estate Funds
+gold,ZGLD.SW,CHF,n/a (CHF),,ZKB Gold ETF (CHF) — physical gold
+convertibles,ICVT,USD,yes,,iShares Convertible Bond ETF (USD) -> CHF
+clo,JAAA,USD,yes,,Janus Henderson AAA CLO ETF (USD) -> CHF; spliced w/ FLOT pre-2020-10
+infrastructure,IGF,USD,yes,,iShares Global Infrastructure ETF (USD) -> CHF
+managed_futures,DBMF,USD,yes,,iMGP DBi Managed Futures (USD) -> CHF
+private_credit,BIZD,USD,yes,,"VanEck BDC Income (public direct-lending proxy, USD) -> CHF"
+cash,(synthetic),CHF,n/a,0.03,SNB policy-rate accrual (SARON proxy)
+ils,(synthetic),CHF-hedged,yes,,Swiss Re Cat Bond-calibrated synthetic
