@@ -25,17 +25,17 @@ monthly total return, **net of fees** (0.12% product + 1.25% management).
   2022–24 hikes (R3) vs only −0.8% for the short (1-5) tranche — consistent with duration being
   an important channel (fig. 05).
 - **Trade-off curve is the core result**: more replacement → higher return, higher vol, deeper
-  drawdown, **roughly unchanged Sharpe** (CAGR 3.43%→4.30%, MaxDD −20.6%→−27.7%, Sharpe ≈0.46–0.48, excess over CHF cash).
+  drawdown, **roughly unchanged Sharpe** (CAGR 3.40%→4.27%, MaxDD −20.6%→−27.9%, Sharpe ≈0.46–0.48, excess over CHF cash).
 - **Statistics (bootstrap, fig. 09)**: **no** replacement level gives a Sharpe gain
   distinguishable from zero (ΔSharpe CIs straddle 0). Drawdown *favours* worse but its 95% CI
-  still includes zero (**H2a suggestive**); **tail loss (CVaR) is worse with ≈95–100%
-  probability** from a 20% replacement onward (**H2b supported**).
+  still includes zero (**H2a suggestive**); **tail loss (CVaR) is worse with ≈99–100%
+  probability** from a 20% replacement (both CVaR90/95, all block lengths; **H2b strong evidence**).
 - **Crisis-type dependent**: replacement *hurt* in the 2020 deflation shock (−10.4% vs AP5
   −6.9%) but *helped* in the 2022 rate shock (−6.6% vs −11.9%).
 - **Recommendation**: favour **partial over wholesale** replacement — the Sharpe point estimate
   peaks around **20%**, but 20/30/40% are **not statistically distinguishable**. Full
   replacement is not supported (reliably worse tail loss, no reliable Sharpe gain).
-- **Robust to the tested specifications** (band/cost/hedge/splice; `robustness.py`).
+- **Full replacement worsens downside in every tested spec**; the partial-Sharpe edge holds except if HY/EM are left unhedged (`robustness.py`).
 - **You replace *parts of what bonds do*** (carry, some diversification/inflation), **not**
   duration or flight-to-quality — which is why full replacement worsens tail risk.
 - **Instrument selection matters** — an *ex-post* curated basket does better (Sharpe ≈0.52),
@@ -78,7 +78,7 @@ pip install -r requirements.txt        # pinned versions
 python src/analysis_2008.py            # analysis/*.csv + results_manifest.json, figures 01-08
 python src/robustness.py               # bootstrap CIs, sensitivity, stress (figure 09)
 python src/appendix_optimization.py    # appendix (secondary)
-python tests/test_engine.py            # unit tests (7 pass)
+python tests/test_engine.py            # unit tests (6 pass)
 # OPTIONAL live-data refresh ($REQUESTS_CA_BUNDLE used if set):
 python src/data_bloomberg.py && python src/data_alternatives.py && python src/build_panel.py
 ```
@@ -97,7 +97,7 @@ intra-month drawdowns; foreign equity is a USD price index → CHF TR proxy (com
 second-order under band rebalancing, validated at 0.955 corr); the CHF hedge and cash are
 policy-rate approximations; convertibles start 2009; the short world-bond index is spliced
 pre-2010 (shown not to change conclusions); single historical path. Rebalancing band is a
-reconstruction **assumption** (base ±20%, sensitivity ±5–20%), not a published VZ rule. See
+reconstruction **assumption** (VZ-consistent base ±8%, sensitivity ±5–20%), not a published VZ rule. See
 `docs/methodology.md` and `docs/assumptions.md`. Not investment advice.
 
 > **Confidentiality:** this repo contains Bloomberg/VZ data likely not redistributable — keep

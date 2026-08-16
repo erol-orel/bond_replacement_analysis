@@ -55,10 +55,11 @@ def main():
     cols = list(CORE) + SLEEVE
     R = px[cols].pct_change().dropna()
     cov = R.cov() * PER
+    rf_ann = float(px["cash"].pct_change().mean() * PER)   # CHF cash proxy — same rf as eval
 
     books = {}
     for obj in ["min_variance", "max_sharpe", "min_cvar"]:
-        r = optimise(R, obj, fixed=CORE, bounds=CAPS, cov=cov)
+        r = optimise(R, obj, fixed=CORE, bounds=CAPS, cov=cov, rf=rf_ann)
         w = {k: round(v, 4) for k, v in r["weights"].items() if v > 1e-3}
         books[f"OPT_{obj}"] = w
 

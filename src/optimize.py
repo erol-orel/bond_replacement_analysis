@@ -1,24 +1,18 @@
 """
-Portfolio optimisation for the best bond-replacement allocation.
+Long-only mean-variance / CVaR optimiser used only by the SECONDARY appendix
+(`appendix_optimization.py`). Objectives, all with box constraints and optional group caps:
 
-Implements several objectives, all long-only with box constraints and group budgets so
-the solutions stay realistic (institutional / OPP2-style caps on illiquid sleeves):
-
-  - max_sharpe        : classic mean-variance tangency
+  - max_sharpe        : mean-variance tangency (risk-free passed via `rf`)
   - min_variance      : global minimum-variance
-  - min_cvar          : minimise 95% Conditional VaR (fat-tail aware; addresses the
-                        draft's "mean-variance fails for non-Gaussian assets" caveat)
+  - min_cvar          : minimise 95% Conditional VaR (fat-tail aware)
   - risk_parity       : equal risk contribution
-  - max_return_capvol : maximise return s.t. vol <= benchmark vol
+  - max_return_capvol : maximise return s.t. vol <= a cap
 
-Two methodological corrections from the draft are applied to the RISK INPUTS:
-  1. Dimson-adjusted betas/vols for smoothed/illiquid assets (private_credit, ils) via
-     regression on contemporaneous + lagged market returns — recovers true risk.
-  2. Liquidity haircuts: hard caps on monthly/locked sleeves (ils, private_credit).
-
-The optimiser sizes the FULL 13-asset book; the AP5 equity/real-estate/cash core can be
-held fixed (recommended) so only the 42% bond sleeve is reallocated across bonds + the 7
-replacements — matching the mandate.
+The AP5 equity/real-estate/cash core is held fixed, so only the 42% bond sleeve is reallocated
+across the bond tranches + the alternatives. Caps in the appendix are RESEARCH-imposed, not a
+regulatory claim. `cov_matrix` includes an optional Dimson variance correction for any
+appraisal-smoothed assets, but the current study holds none (all instruments are
+mark-to-market), so that correction is inert here.
 """
 from __future__ import annotations
 import numpy as np

@@ -40,9 +40,9 @@ FEE_MGMT = 0.0125              # VZ wrapper / management fee (agreed with direct
 FEE_ANNUAL = FEE_PRODUCT + FEE_MGMT     # 1.37% /yr applied to every book
 TC_BPS = 10.0                  # one-way transaction cost, bps of turnover (base)
 # Band width is a RECONSTRUCTION ASSUMPTION, not a stated VZ rule. The VZ slide-5 example
-# (50% target, 46-54% hard bounds) implies ~±8% relative hard bands; we use ±20% as the base
-# and show the conclusion survives ±5/8/10/15/20% (robustness.py).
-BAND_BASE = 0.20
+# (50% target, 46-54% hard bounds) implies ~±8% relative hard bands; we take that VZ-consistent
+# value as the BASE case and show the conclusion survives ±5/10/15/20% (robustness.py).
+BAND_BASE = 0.08
 BAND_GRID = [0.05, 0.08, 0.10, 0.15, 0.20]
 TC_GRID = [0.0, 5.0, 10.0, 25.0, 50.0]
 

@@ -155,7 +155,10 @@ def perf_metrics(value: pd.Series, rf_annual: float = 0.0,
         rf_d = pd.Series((1 + rf_annual) ** (1 / periods) - 1, index=r.index)
     excess = r - rf_d
     downside = np.sqrt((np.minimum(excess, 0.0) ** 2).mean()) * np.sqrt(periods)  # MAR=rf
-    sharpe = excess.mean() / r.std() * np.sqrt(periods) if r.std() > 0 else np.nan
+    # Sharpe on excess returns: mean(excess)/std(excess) — correct denominator for a
+    # time-varying risk-free (with a constant rf, std(excess)==std(r)).
+    ex_std = excess.std()
+    sharpe = excess.mean() / ex_std * np.sqrt(periods) if ex_std > 0 else np.nan
     sortino = excess.mean() * periods / downside if downside > 0 else np.nan
     dd = v / v.cummax() - 1
     maxdd = dd.min()

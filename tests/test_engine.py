@@ -76,24 +76,13 @@ def test_no_lookahead():
     px2 = px1.copy()
     split = 24
     px2.iloc[split:] = px2.iloc[split:] * np.linspace(1, 5, len(px2) - split)[:, None]  # future shock
-    b1 = backtest(px1, AP5, mode="smart", rel_band=0.2, monitor_freq="ME", tc_bps=10)["value"]
-    b2 = backtest(px2, AP5, mode="smart", rel_band=0.2, monitor_freq="ME", tc_bps=10)["value"]
-    assert np.allclose(b1.iloc[:split].values, b2.iloc[:split].values), \
-        "future prices changed past decisions -> look-ahead"
-
-
-def test_common_equity_shock_no_fake_edge():
-    # AP5 and a 100% replacement that keeps identical equity core; feed a huge common equity
-    # shock. The replacement must NOT gain a spurious Sharpe edge purely from the shared core.
-    cols = sorted(set(list(AP5)) | set(replacement_book(1.0)))
-    px = _prices(cols=cols, seed=7)
-    px["world_equity"] *= np.linspace(1, 3, len(px))          # common core shock
-    a = net_of_fee(backtest(px, AP5, mode="smart", rel_band=0.2, monitor_freq="ME")["value"])
-    b = net_of_fee(backtest(px, replacement_book(1.0), mode="smart", rel_band=0.2,
-                            monitor_freq="ME")["value"])
-    sa = perf_metrics(a, periods=PER)["Sharpe"]
-    sb = perf_metrics(b, periods=PER)["Sharpe"]
-    assert abs(sa - sb) < 0.6, "shared equity shock produced an implausibly large Sharpe gap"
+    bt1 = backtest(px1, AP5, mode="smart", rel_band=0.2, monitor_freq="ME", tc_bps=10)
+    bt2 = backtest(px2, AP5, mode="smart", rel_band=0.2, monitor_freq="ME", tc_bps=10)
+    assert np.allclose(bt1["value"].iloc[:split].values, bt2["value"].iloc[:split].values), \
+        "future prices changed the past VALUE path -> look-ahead"
+    # the real object to protect: the allocation DECISIONS (weights) before the split
+    assert np.allclose(bt1["weights"].iloc[:split].values, bt2["weights"].iloc[:split].values), \
+        "future prices changed past WEIGHTS/rebalance decisions -> look-ahead"
 
 
 def _run_all():

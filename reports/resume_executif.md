@@ -57,7 +57,7 @@ duration est le canal. Suisses/mondiales corrélées (**0,79**) mais **non redon
 | R4 2024–26 (assoupl.) | 5,1 | 5,9 | 6,9 | **8,3** | le remplacement **gagne** |
 
 **Résultat central — la courbe de compromis** : plus on remplace, plus le rendement, la
-volatilité et le drawdown augmentent, pour un **Sharpe quasi inchangé** (CAGR 3,43 %→4,30 %,
+volatilité et le drawdown augmentent, pour un **Sharpe quasi inchangé** (CAGR 3,40 %→4,27 %,
 MaxDD −20,6 %→−27,7 %, Sharpe ≈0,47).
 
 **Statistiques (bootstrap par blocs, 3 000 tirages)** : **aucun** niveau de remplacement ne

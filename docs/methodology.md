@@ -96,7 +96,7 @@ a **policy-rate-implied approximation**: `r_CHF-hedged ≈ r_USD-local + (r_CHF 
 using the **prior** month-end SNB/Fed differential (same no-look-ahead lag as cash), which
 ignores forward points, cross-currency basis and roll cost — so it is
 *not* an actual hedged-product return. `robustness.py` re-runs with HY/EM **unhedged** to show
-the hedge assumption's impact (it lowers the full-replacement Sharpe from 0.47 to 0.44).
+the hedge assumption's impact (it lowers the full-replacement Sharpe from ~0.46 to ~0.43 and removes the partial-Sharpe edge).
 
 ## Step 5 — Fees
 
@@ -114,9 +114,12 @@ The mandate uses **band-based monitoring** (not calendar rebalancing) — an obs
 the VZ *Kundendoku* and PM email. The **documented example** is the 50%-equity case with soft
 bounds 48–52% and hard bounds 46–54%, i.e. **≈±8% relative** hard bands around target. VZ does
 **not** publish the general formula for other target weights, so the band width used to
-generalise the example is a **reconstruction assumption**, not "the VZ rule". We take **±20%
-relative** as the base case and show in `robustness.py` that the conclusion is unchanged across
-**±5 / 8 / 10 / 15 / 20%**. When a sleeve leaves its band the whole book snaps to target;
+generalise the example is a **reconstruction assumption**, not "the VZ rule". We take the
+**VZ-consistent ±8% relative** as the base case and show in `robustness.py` that the conclusion
+is unchanged across **±5 / 10 / 15 / 20%**. (This is a **single-band** approximation — the
+engine has one band and snaps to target on breach; it does not reproduce VZ's separate 48–52%
+soft / 46–54% hard levels, which are not a published operational rule.) When a sleeve leaves its
+band the whole book snaps to target;
 10 bps one-way transaction cost (0–50 bps sensitivity). The engine is frequency-agnostic;
 monthly metrics annualise with `periods = 12`.
 
@@ -202,7 +205,7 @@ python src/analysis_2008.py          # analysis/*.csv + results_manifest.json, f
 python src/robustness.py             # bootstrap CIs, sensitivity matrix, stress table (fig 09)
 python src/appendix_optimization.py  # appendix (secondary)
 python src/figures_fr.py             # French 300-dpi charts
-python tests/test_engine.py          # unit tests (7 pass)
+python tests/test_engine.py          # unit tests (6 pass)
 
 # --- OPTIONAL data refresh (pulls LIVE Yahoo data; may differ slightly from the snapshot) ---
 # $REQUESTS_CA_BUNDLE is used if set (egress proxy); no machine-specific path is hard-coded
