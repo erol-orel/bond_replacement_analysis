@@ -14,7 +14,9 @@ the analysis is read regime-by-regime rather than via a contested "low-rate thre
 
 ## Hypotheses (state which are supported)
 
-- **H1** Partial replacement raises long-run return. → **supported** (monotonic point estimates).
+- **H1** Partial replacement raises long-run return. → **descriptive support**: point estimates are
+  monotonically increasing, but the bootstrap does **not** establish a statistically significant
+  positive return difference (P(ΔCAGR>0) ≈ 82–84%; the 95% CI includes zero at each level).
 - **H2a** Full replacement raises **max drawdown**. → **suggestive**: bootstrap favours worse
   (P≈91%) but the 95% ΔMaxDD interval still includes zero.
 - **H2b** Full replacement raises **tail loss (CVaR)**. → **supported**: worse with ≈95–100%

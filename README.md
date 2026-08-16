@@ -3,7 +3,7 @@
 Empirical support for the HEC Lausanne MSc Finance thesis on **alternatives to the bond sleeve
 in Swiss strategic portfolio construction**. We replicate the VZ **Anlageprofil 5 (AP5 / VVIA)**
 mandate from its **exact Bloomberg index constituents** (VZ Kundendoku slide 5) with band-based
-rebalancing, extend it back to **January 2008**, and replace the **42% bond sleeve** with
+rebalancing, measure it over a **common February 2008–June 2026 sample**, and replace the **42% bond sleeve** with
 market-investable alternatives **over the whole period** — read **regime by regime** (SNB). CHF,
 monthly total return, **net of fees** (0.12% product + 1.25% management).
 
@@ -95,8 +95,9 @@ Canonical numbers (with code commit + library versions + risk-free basis) are wr
 
 ## Portfolios (2008–2026 study)
 Bond sleeve (42%) replaced in **10% steps**: `AP5` (0%), `repl_10`, …, `repl_100`, on the
-granular AP5 core. **Primary basket** = equal weight of the six alternatives with full 2008
-history (gold, commodities, infrastructure, managed futures, HY, EM debt), pre-specified. A
+granular AP5 core. **Primary basket** = equal weight of the six alternatives with histories
+beginning in 2008 (gold, commodities, infrastructure, managed futures, HY, EM debt), with EM debt
+setting the February 2008 common start, pre-specified. A
 **curated** basket is an *ex-post exploratory* variant (§8 of the report), not the recommendation.
 
 ## Important caveats
