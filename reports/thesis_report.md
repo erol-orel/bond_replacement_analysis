@@ -9,22 +9,29 @@
 
 ---
 
-## 1. Research question and hypotheses
+## 1. Goal and research questions
 
-Replacing the bond sleeve of a Swiss index mandate (VZ **AP5**) is not one question but two:
-*which functions of the bond sleeve can a diversified set of investable alternatives
-reproduce, and at what risk cost?* Bonds in AP5 provide **return, carry/income,
-diversification, liquidity, flight-to-quality, and duration exposure** — no single
-alternative replaces all six. We test:
+**Goal (one sentence).** Decide whether the **42% bond sleeve** of the Swiss VZ **AP5** mandate
+can be replaced by investable alternatives, and **at what cost in risk** — measured over the full
+**2008–2026** sample and read across **interest-rate regimes**.
 
-- **H1** — Partial bond replacement raises long-run portfolio **return**.
-- **H2a** — Full replacement increases **maximum drawdown** vs AP5.
-- **H2b** — Full replacement increases **tail loss (CVaR)** vs AP5.
-- **H3** — The effect of replacement is **regime dependent** (SNB rate environment).
-- **H4** — Partial replacement offers a more favourable **return–risk trade-off** than full
-  replacement.
+The study answers **three plain questions**. Each maps to a formally tested hypothesis, so the
+simple framing on the left and the statistical test on the right are the same thing:
 
-Verdict (developed below, from the bootstrap in §6.3):
+| Plain question | Formally tested as |
+|---|---|
+| **Q1 — Return.** Does replacing bonds change long-run return? | **H1**: partial replacement raises return |
+| **Q2 — Risk.** Does it change the downside — deep drawdowns and tail losses? | **H2a**: full replacement deepens max drawdown · **H2b**: full replacement worsens tail loss (CVaR) |
+| **Q3 — Regime.** Does the answer depend on the SNB rate environment? | **H3**: the effect is regime-dependent |
+
+Whether **partial** replacement is preferable to **full** (previously a separate hypothesis) is
+treated as a **recommendation question**, answered in §9 — not a fourth test.
+
+*Why bonds are hard to replace:* in AP5 they provide **return/carry, diversification, liquidity,
+flight-to-quality and duration** at once — no single alternative reproduces all of these, which is
+the tension the three questions probe.
+
+Verdicts (developed below, from the bootstrap in §6.3):
 - **H1 — descriptive support**: the point estimate of CAGR rises monotonically with
   replacement, but the bootstrap does **not** establish a significant positive return
   difference (P(ΔCAGR>0) ≈ 82–84%; the 95% CI includes zero at each level).
@@ -37,11 +44,12 @@ Verdict (developed below, from the bootstrap in §6.3):
   "significant" because no formal one-sided 95% decision rule is pre-registered.
 - **H3 — descriptive support**: the sign of the replacement effect changes across regimes and
   crisis types (a descriptive, not a formally tested, interaction).
-- **H4 — qualified / not supported as a Sharpe claim**: under the primary category-level
-  specification the Sharpe is **flat-to-declining in replacement** (highest at AP5, ≈0.48 through
-  ~50%, then falling), and every ΔSharpe is **within bootstrap noise** — so partial replacement is
-  a defensible return-and-risk *compromise* but is **not** a risk-adjusted improvement and there
-  is **no** unique optimal ratio. Full replacement is not supported.
+
+On the **recommendation question** (partial vs full, §9): under the primary category-level
+specification the Sharpe is **flat-to-declining in replacement** (highest at AP5, ≈0.48 through
+~50%, then falling), and every ΔSharpe is **within bootstrap noise** — so partial replacement is a
+defensible return-and-risk *compromise* but is **not** a risk-adjusted improvement, and there is
+**no** unique optimal ratio. Full replacement is not supported.
 
 ## 2. The exact AP5 allocation (VZ Kundendoku slide 5)
 

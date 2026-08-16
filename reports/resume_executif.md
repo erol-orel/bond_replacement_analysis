@@ -5,13 +5,23 @@ total net de frais · 2008–2026**
 
 ---
 
-## Problématique (reformulée)
+## Objectif et trois questions
 
-Remplacer la **poche obligataire** du portefeuille VZ AP5 par des actifs alternatifs **sur
-l'ensemble de la période**, puis analyser le résultat **régime par régime**. Le problème
-n'est pas seulement les taux bas : lorsque les taux *montent*, les obligations perdent
-aussi. Lire l'analyse par régime de la BNS supprime le besoin d'un seuil « taux bas »
-contesté.
+**Objectif (une phrase).** Déterminer si la **poche obligataire (42 %)** du portefeuille VZ **AP5**
+peut être remplacée par des actifs alternatifs, et **à quel prix en termes de risque** — sur toute
+la période **2008–2026** et selon l'**environnement de taux**.
+
+L'étude répond à **trois questions simples** :
+
+1. **Rendement** — remplacer les obligations change-t-il le rendement à long terme ?
+2. **Risque** — cela change-t-il le risque, surtout les pertes sévères (drawdown) et les **pertes
+   extrêmes** (CVaR) ?
+3. **Régime** — la réponse dépend-elle de l'environnement de taux de la BNS ?
+
+Le problème n'est pas seulement les taux bas : lorsque les taux *montent*, les obligations perdent
+aussi. Lire l'analyse **régime par régime** supprime le besoin d'un seuil « taux bas » contesté.
+La question « partiel vs intégral » est traitée comme une **recommandation**, non comme une
+quatrième hypothèse.
 
 ## Données (réelles, pas de proxys synthétiques du cœur)
 
