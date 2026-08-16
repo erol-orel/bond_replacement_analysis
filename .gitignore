@@ -1,4 +1,13 @@
 __pycache__/
 *.pyc
-.ipynb_checkpoints/
 .DS_Store
+reports/docx/*.pdf
+reports/docx/*page*.jpg
+
+# --- Confidential source data (see docs/source_register.md) ---
+# These are COMMENTED so the repo remains reproducible-from-raw in a PRIVATE setting.
+# If you need a PUBLIC/shareable copy, uncomment to stop tracking the third-party data,
+# then `git rm -r --cached` the paths below. Do NOT publish without checking rights.
+# data/bloomberg/
+# data/raw/
+# docs/source_materials/

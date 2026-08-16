@@ -1,0 +1,49 @@
+{
+  "window": "2008-01..2026-06",
+  "frequency": "monthly",
+  "fee_annual": 0.0137,
+  "band_base_rel": 0.2,
+  "tc_bps": 10.0,
+  "bond_sleeve_pct": 42.0,
+  "validation": {
+    "corr": 0.955,
+    "tracking_error_ann": 0.0235,
+    "mean_abs_month_gap": 0.005,
+    "recon_total": 0.251,
+    "vz_total": 0.2109,
+    "reg_alpha_ann": -0.0035,
+    "reg_beta": 0.9692,
+    "reg_r2": 0.912
+  },
+  "AP5": {
+    "CAGR": 0.0343,
+    "Vol": 0.078,
+    "Sharpe": 0.472,
+    "MaxDD": -0.2055
+  },
+  "repl_100_primary": {
+    "CAGR": 0.043,
+    "Vol": 0.1006,
+    "Sharpe": 0.47,
+    "MaxDD": -0.2769
+  },
+  "curated_100_expost": {
+    "CAGR": 0.049,
+    "Sharpe": 0.528,
+    "MaxDD": -0.2749
+  },
+  "sharpe_by_step": {
+    "AP5": 0.472,
+    "repl_10": 0.481,
+    "repl_20": 0.491,
+    "repl_30": 0.487,
+    "repl_40": 0.486,
+    "repl_50": 0.485,
+    "repl_60": 0.48,
+    "repl_70": 0.478,
+    "repl_80": 0.476,
+    "repl_90": 0.474,
+    "repl_100": 0.47
+  },
+  "swiss_world_bond_corr": 0.786
+}

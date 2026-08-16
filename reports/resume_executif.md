@@ -23,13 +23,15 @@ couvert CHF 16,8 / 1-5 8,4**, immobilier SXI 5, liquidités 3. Taux **BNS + Fed*
 **Poche obligataire = 42 %** (suisses 16,8 % + mondiales 25,2 %), conservant sa structure
 duration longue / courte (1-5).
 
-## Validation — la réplication est fiable
+## Validation — un benchmark stylisé (non une réplique exacte)
 
-Reconstitution de l'AP5 (indices → Smart Rebalancing → net de frais, dérive d'allocation réelle
-de VZ) contre la **VNI réelle du produit VZ**, 2019–2026 : **corrélation 0,955**, **tracking
-error 2,35 %/an**, suivi visuel fidèle à travers le COVID, la chute de 2022 et la reprise. La
-TE résiduelle provient du volet actions étrangères (indice de prix USD converti en CHF) —
-**elle s'annule dans toutes les comparaisons AP5-vs-remplacement**, le cœur identique partout.
+Reconstitution de l'AP5 (indices → rebalancement par bandes → net de frais, dérive
+d'allocation réelle de VZ) contre la **VNI réelle du produit VZ**, 2019–2026 : **corrélation
+0,955**, régression **β 0,97 / α −0,35 %/an / R² 0,91**, **tracking error 2,35 %/an**, écart
+cumulé +25,1 % vs +21,1 %. La TE résiduelle provient surtout du volet actions étrangères
+(indice de prix USD converti en CHF) ; ce cœur est commun à tous les portefeuilles comparés,
+donc son biais est partagé (effet de second ordre sous rebalancement par bandes). On la traite
+comme un **benchmark stylisé**, non une reconstruction exacte des transactions de VZ.
 
 ## Le problème obligataire, par régime — la duration compte (fig. 05)
 
@@ -54,24 +56,32 @@ duration est le canal. Suisses/mondiales corrélées (**0,79**) mais **non redon
 | R3 2022–24 (hausses) | 3,1 | 2,8 | 2,7 | 2,8 | **neutre** |
 | R4 2024–26 (assoupl.) | 5,1 | 5,9 | 6,9 | **8,3** | le remplacement **gagne** |
 
-**Sur le cycle complet, pas de repas gratuit** : le remplacement intégral fait passer le
-rendement de 3,43 % à 4,30 %/an mais le drawdown de −21 % à −28 %, avec un **ratio de Sharpe
-quasi inchangé** (pic léger ~0,49 vers 20–40 %). La valeur du remplacement est **conditionnelle
-au régime**.
+**Résultat central — la courbe de compromis** : plus on remplace, plus le rendement, la
+volatilité et le drawdown augmentent, pour un **Sharpe quasi inchangé** (CAGR 3,43 %→4,30 %,
+MaxDD −20,6 %→−27,7 %, Sharpe ≈0,47).
+
+**Statistiques (bootstrap par blocs, 3 000 tirages)** : **aucun** niveau de remplacement ne
+produit un gain de Sharpe distinguable de zéro (les IC de ΔSharpe englobent 0) ; en revanche
+le remplacement **creuse le drawdown de façon fiable** (probabilité jusqu'à **91 %** à 100 %).
+
+**Dépend du type de crise** : le remplacement a *nui* lors du choc déflationniste 2020
+(−10,4 % vs AP5 −6,9 %) mais *aidé* lors du choc de taux 2022 (−6,6 % vs −11,9 %).
 
 ## Recommandation
 
-- **Ne pas remplacer intégralement.** Un remplacement **partiel (≈ 20–40 %)** se situe au pic
-  de Sharpe, capte le gain de régime (R2/R4) et conserve un cœur obligataire pour les fuites
-  vers la qualité (chocs de type R1).
-- **Le choix des instruments compte autant que le montant.** Un panier **curated** (haut
-  rendement 35 / dette émergente 30 / or 20 / infrastructure 15, écartant les deux
-  perdants — matières premières et managed futures) **domine** le panier naïf : Sharpe
-  **0,53 vs 0,47** à 100 % de remplacement, **au-dessus de l'AP5 (0,47)**.
+- **Privilégier un remplacement partiel plutôt qu'intégral.** Un remplacement **faible à
+  modéré (≈ 20–40 %)** offre le meilleur *compromis* rendement–risque historique — mais
+  l'analyse **n'identifie pas de ratio optimal statistiquement unique** (écarts de Sharpe dans
+  le bruit du bootstrap). Le remplacement intégral n'est **pas** soutenu (drawdown fiablement
+  pire, pas de gain de Sharpe fiable, perte de la protection « fuite vers la qualité » de 2020).
 - **Conserver la structure obligataire** (suisses + mondiales, larges + courtes 1-5).
+- **Le choix des instruments compte** : un panier « curated » (HR 35 / dette ém. 30 / or 20 /
+  infra 15) fait mieux (Sharpe 0,53), mais c'est un résultat **ex-post exploratoire**, non la
+  recommandation — à valider hors échantillon.
 - **Écartés (avec justification)** : ILS, private equity/credit et fonds hypothécaires suisses
-  — aucun ne satisfait le critère *investissable / liquide / net de frais* (pas de série
-  publique valorisée au marché).
+  — aucun ne satisfait le critère *investissable / liquide / net de frais*.
+- **Robustesse** : la conclusion survit à toutes les variations (bande, coûts, couverture,
+  raccord 2008-09).
 
 ## Note d'honnêteté & annexe
 
