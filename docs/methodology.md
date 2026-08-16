@@ -9,6 +9,21 @@ CHF, monthly total return, net of fees.
 > Supersedes the earlier 2019–2026 daily/Yahoo-proxy study (`download_data.py`,
 > `run_analysis.py`, `walkforward.py`, `montecarlo.py`), which is retained for reference.
 
+### All assumptions at a glance
+
+| Assumption | Base case |
+|---|---|
+| Sample window | 2008-02 – 2026-06 (common to every book; EM debt begins 2008-02) |
+| Frequency | Monthly, CHF total return, net of fees |
+| Bond sleeve replaced | 42% (16.8% Swiss + 25.2% world), in 10% steps (0, 10, …, 100%) |
+| Rebalancing | VZ-style Smart Rebalancing at the **category/sleeve level**; alternatives held as one equal-weighted "alts" sleeve (per-constituent bands = robustness) |
+| Band | ±8% relative (VZ-consistent base; ±5/10/15/20% as robustness) |
+| Transaction cost | 10 bps one-way of turnover (0–50 bps as robustness) |
+| Fee load | 1.37%/yr constant (0.12% product + 1.25% management), exact multiplicative `(1+r)/(1+m)` |
+| Cash proxy | SNB policy-rate path, prior month-end (monthly, no intra-month time-weighting) |
+| HY/EM currency | CHF-hedged via a policy-rate-implied full-month carry approximation (unhedged as robustness) |
+| Risk-free (Sharpe/Sortino) | CHF cash proxy, excess returns (zero-rf variant reported alongside) |
+
 ---
 
 ## Step 0 — Sources (`data/bloomberg/`, provided by the analyst)
@@ -75,7 +90,10 @@ tactically; that drift is used only to tighten the validation (Step 9).
 Cash is a **policy-rate cash proxy**: the SNB policy-rate path accrued monthly (`snb/12`),
 assuming full and immediate pass-through to cash remuneration. To avoid intra-month look-ahead
 (a policy change mid-month applied to the whole month), month *t* is accrued on the **prior
-month-end rate** — the information available at the start of the month. Its *return* is negative
+month-end rate** — the information available at the start of the month. It is therefore a
+**monthly** proxy: the monthly policy-rate observation is used as a simplified remuneration rate
+and **intra-month policy changes are not explicitly time-weighted** (this is not a daily SARON
+backtest). Its *return* is negative
 over 2015–2022 (the −0.75% era); the wealth index itself does not go negative. This CHF cash
 series is also the **risk-free rate** for Sharpe/Sortino (computed on excess returns; a
 zero-risk-free variant is reported alongside and barely differs). A SARON-based proxy would be a
@@ -93,9 +111,9 @@ The VZ PM confirmed VZ hedges **only its own global bond sleeve** to CHF; equiti
 unhedged. We follow this for the AP5 core. Extending the hedge to the **credit-like
 replacements** (HY, EM debt) is **our modelling assumption**, not a VZ statement. The hedge is
 a **policy-rate-implied approximation**: `r_CHF-hedged ≈ r_USD-local + (r_CHF − r_USD)/12`
-using the **prior** month-end SNB/Fed differential (same no-look-ahead lag as cash), which
-ignores forward points, cross-currency basis and roll cost — so it is
-*not* an actual hedged-product return. `robustness.py` re-runs with HY/EM **unhedged** to show
+using the **prior** month-end SNB/Fed differential (same no-look-ahead lag as cash), applied as
+a **simplified full-month carry approximation**, which ignores forward points, cross-currency
+basis and roll cost — so it is *not* an actual hedged-product return. `robustness.py` re-runs with HY/EM **unhedged** to show
 the hedge assumption's impact (it lowers the full-replacement Sharpe from ~0.46 to ~0.43 and removes the partial-Sharpe edge).
 
 ## Step 5 — Fees
