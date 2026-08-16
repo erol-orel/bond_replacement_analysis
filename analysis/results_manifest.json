@@ -1,8 +1,8 @@
 {
   "meta": {
-    "code_commit": "71c4741",
-    "generating_commit": "71c4741",
-    "code_commit_date": "2026-08-16T21:43:16+00:00",
+    "code_commit": "2897c06",
+    "generating_commit": "2897c06",
+    "code_commit_date": "2026-08-17T00:39:03+02:00",
     "note": "Commit lineage (two-commit pattern): `generating_commit` (== `code_commit`) is HEAD when this manifest is written \u2014 the code that produced these results; the results themselves land in the immediately following outputs-only commit; that outputs commit is then merged, so the branch/repository HEAD after merge is a later merge commit. This hash therefore deterministically identifies the generating code (no wall-clock stamp).",
     "python": "3.11.15",
     "numpy": "2.4.6",

@@ -59,6 +59,10 @@ def main():
           os.path.join(HERE, "Resume_executif_FR.docx"),
           "Résumé exécutif — Alternatives aux obligations (VZ AP5, 2008–2026)",
           "Figures")
+    build(os.path.join(ROOT, "reports", "thesis_structured.md"), FIG, EN_FIGS,
+          os.path.join(HERE, "Thesis_structured_EN.docx"),
+          "Replacing bonds in a Swiss portfolio — a structured thesis (VZ AP5, 2008–2026)",
+          "Figures", toc=True)
     build(os.path.join(ROOT, "reports", "thesis_report.md"), FIG, EN_FIGS,
           os.path.join(HERE, "Bond_replacement_full_report_EN.docx"),
           "Alternatives to bonds — empirical foundation (VZ AP5, 2008–2026)",
