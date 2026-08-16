@@ -1,173 +1,95 @@
-# Methodology
+# Methodology (2008–2026 reframed study)
 
-Reproducible pipeline for replicating the VZ **AP5** portfolio with index/ETF proxies,
-applying **Smart Rebalancing**, and testing **bond-replacement** strategies over
-**01 Jul 2019 → 30 Jun 2026**.
+Reproducible pipeline replicating the VZ **AP5** mandate from **Bloomberg constituent
+indices**, applying **VZ Smart Rebalancing**, and replacing the bond sleeve with investable
+alternatives **over the whole period**, read **regime by regime**. CHF, monthly total
+return, net of fees.
+
+> Supersedes the earlier 2019–2026 daily/Yahoo-proxy study. That code
+> (`download_data.py`, `run_analysis.py`, `walkforward.py`, `montecarlo.py`) is retained but
+> the headline analysis is now `analysis_2008.py`.
 
 ---
 
-## 1. Data
+## 1. Sources (`data/bloomberg/`, provided by the analyst)
 
-- **Source:** Yahoo Finance chart API (`query1.finance.yahoo.com`), daily
-  dividend-adjusted close (= total return), pulled via `requests` through the session's
-  egress proxy (`src/download_data.py`). No API key.
-- **Base currency:** CHF. Everything is a CHF total-return series.
-- **Window:** 1827 business days, 2019-07-01 → 2026-06-30.
-- **Proxy map:** `data/proxy_map.csv`. SIX-listed **CHF ETFs** are used wherever possible
-  so no FX conversion is needed for the AP5 sleeves.
+| File / sheet | Content |
+|---|---|
+| `Memoire_de_master.xlsx` → *Indexes data - Bloomberg* | daily index levels: SBI AAA-BBB, SPI, MSCI World, MSCI EM, SXI Real Estate Funds |
+| … → *Bonds history* (cols 52–55) | monthly **SNB** and **Fed** policy rates, 2008–2026 |
+| … → *Price history AP5 VZ* | the **real** VZ AP5 (VVIA) daily NAV, 2019–2026 (validation) |
+| `CHF hedged data.xlsx` | Bloomberg Global Aggregate **CHF-hedged** (world bonds), monthly |
+| `Consolidation_allocations.xlsx` | the real VZ AP5 target allocation and its drift, 2017–2026 |
 
-| Sleeve | Proxy | Native ccy | Notes |
-|---|---|---|---|
-| Swiss equity | `CHSPI.SW` iShares Core SPI | CHF | SPI total return |
-| World equity | `XDWL.SW` Xtrackers MSCI World | CHF | **unhedged** (per PM: equities not hedged) |
-| Swiss bonds | `CSBGC0.SW` | CHF | SBI-type CHF bond |
-| World bonds | `AGGS.SW` Global Aggregate | CHF | **CHF-hedged** (per PM: bonds hedged) |
-| Real estate | `CHSRI.SW` | CHF | SXI Real Estate Funds |
-| Cash | synthetic | CHF | SNB policy-rate accrual (SARON proxy) |
-| Gold | `ZGLD.SW` ZKB Gold | CHF | physical, CHF-priced |
-| Convertibles | `ICVT` | USD→CHF-hedged | iShares Convertible |
-| AAA CLO | `JAAA` (+`FLOT` splice) | USD→CHF-hedged | see §4 |
-| Infrastructure | `IGF` | USD→CHF-hedged | iShares Global Infra |
-| Managed futures | `DBMF` | USD→CHF-hedged | iMGP DBi Managed Futures |
-| Private credit | `BIZD` | USD→CHF-hedged | public BDC proxy (see caveat) |
-| ILS / cat bonds | synthetic | CHF-hedged | Swiss Re Cat Bond-calibrated (see §5) |
+Provenance for the source materials (VZ *Kundendoku* Smart-Rebalancing slide, the PM email
+confirming CHF-hedging, the SNB sub-period justification) is archived under
+`docs/source_materials/erta_2026-08/`.
 
-## 2. Currency treatment
+## 2. Building the panel
 
-The PM confirmed VZ **hedges only the global bond sleeve into CHF**; world equities are
-unhedged. We follow this exactly:
+`src/data_bloomberg.py`
+- Reads the paired date/value columns per index; resamples to **month-end**.
+- Swiss bonds (SBI AAA-BBB), Swiss equity (SPI), real estate (SXI) are native CHF total
+  return. World bonds = the **CHF-hedged** Global Aggregate.
+- **Foreign equity** (MSCI World / EM) is a Bloomberg *price* index in USD → converted to a
+  CHF total-return proxy: `level × USD/CHF` (spot, from Yahoo `CHF=X`) grossed up by a
+  constant net dividend yield (`DIV_WORLD = 2.1%`, `DIV_EM = 2.6%`). The equity core is
+  identical across all compared portfolios, so this proxy **cancels** in every
+  AP5-vs-replacement contrast; it is validated against the real VZ NAV (§5).
 
-- **World equity** → CHF-listed *unhedged* ETF (retains FX exposure a CHF investor bears).
-- **World bonds** → CHF-*hedged* ETF (native CHF).
-- **USD-native replacement candidates** (convertibles, CLO, infrastructure, managed
-  futures, private credit) are modelled as **CHF-hedged share classes**: we keep the
-  asset's *local* (USD) total return and add the daily hedge carry `(r_CHF − r_USD)/252`
-  from the SNB and USD policy-rate paths (`config.SNB_PATH`, `config.USD_PATH`). This
-  removes FX spot moves and retains the **interest-rate-differential hedging cost**.
-  - **Finding:** over 2019–2024 USD rates sat far above CHF rates, so this cost ran
-    **≈ 3% p.a.**, not the 0.5–1.5% the draft assumed. Currency is a first-order drag on
-    USD-market bond replacements for a CHF investor — a central result of the analysis.
-- **Gold** via `ZGLD.SW` is CHF-priced physical gold (gold-in-CHF), the standard Swiss
-  access route; kept unhedged.
+`src/data_alternatives.py` — investable proxy total-return series to 2008, CHF:
+- **Unhedged** (× spot USD/CHF): gold `GLD`, commodities `DBC`, infrastructure `IGF`,
+  convertibles `CWB`, managed futures `RYMFX`.
+- **CHF-hedged** (USD local TR + `(r_CHF − r_USD)/12` monthly carry, from the SNB/Fed
+  paths): high yield `HYG`, EM debt `EMB` — mirroring VZ's *only bonds are hedged* rule.
+- Cat bonds are omitted (no investable vehicle has a clean 2008 history).
 
-## 3. AP5 strategic allocation
+`src/build_panel.py` — merges constituents + alternatives + a **CHF cash** index built from
+the SNB path (monthly accrual `snb/12`, so it goes **negative** 2015–2022) onto one
+month-end grid → `data/processed/panel_levels_monthly.csv`, `panel_returns_monthly.csv`.
 
-`config.AP5_TARGET` (VZ Anlageprofil 5, VVIA index implementation):
-Swiss equity 25% · World equity 25% · Swiss bonds 16.8% · World bonds 25.2% ·
-Real estate 5% · Cash 3%. **Total bond sleeve = 42%.**
+## 3. Rebalancing engine
 
-## 4. AAA CLO history splice
+`src/engine.py` — VZ Smart Rebalancing: predefined **±20% relative bands**, monthly
+monitoring; the whole book snaps to target only when a sleeve leaves its band. Also supports
+calendar and buy-and-hold for comparison, and regime-switching via a target schedule.
+Frequency-agnostic; monthly metrics use `periods = 12`. 10 bps one-way transaction cost.
 
-`JAAA` (Janus Henderson AAA CLO) begins 2020-10-19, after our start. The 2019-07 → 2020-10
-gap is back-filled with `FLOT` (floating-rate IG) daily returns **dampened to JAAA's own
-daily volatility** (keeps FLOT's trend, compresses its March-2020 liquidity dislocation
-from ~−12% to an AAA-CLO-realistic ~−4%; the draft cites 3–5%). Documented in
-`src/download_data.py`; pre-2020-10 CLO is a proxy, not a live track record.
+## 4. Fees
 
-## 5. Synthetic series
+A constant **1.37%/yr** load — **0.12% product + 1.25% management** (agreed with the
+internship director) — applied as a monthly drag to every portfolio (`net_of_fee`). Applies
+equally to AP5 and to all replacement books, so it does not distort the comparison; it does
+make the reconstruction directly comparable to the *net* VZ NAV.
 
-- **Cash:** compounds the SNB policy-rate path (daily accrual `rate/360`); captures the
-  2019–2022 negative-rate drag on the 3% liquidity sleeve.
-- **ILS:** no daily-liquid long-history ETF exists, so `src/synth_ils.py` builds a
-  **transparent, seeded** series calibrated to the Swiss Re Global Cat Bond Index:
-  risk-free + ~4.5% premium, low day-to-day vol (~3% annualised), with discrete
-  **catastrophe drawdowns** (Hurricane Ian, Sep 2022 ≈ −11.5%) and the record 2023
-  (+19.7%) / 2024 (+17%) years. **This is a calibrated model, not a realised return.**
+## 5. Validation
 
-## 6. VZ Smart Rebalancing engine (`src/engine.py`)
+`analysis_2008.py::validate_vs_vz` reconstructs AP5 (Smart Rebalancing, net of fees) and
+compares to the real VZ VVIA NAV over 2019–2026: **corr 0.94, tracking error 2.7%/yr**,
+mean absolute monthly gap 0.6% (fig. 02).
 
-- Hold units of each sleeve's total-return index; weights drift with prices.
-- **Smart (bandwidth) mode:** at each monitoring date (month-end, base case) check whether
-  any sleeve's weight has left its **relative tolerance band** `[w*(1−b), w*(1+b)]`. If
-  any breaches, **rebalance the whole book to target** (the VZ slide-12 snap-back). Base
-  band **b = ±20% relative** (slide shows ±8% relative on equity as a minimum; widened to
-  a defensible institutional default and stress-tested at ±10%/±30%).
-- **Comparison modes:** calendar quarterly / annual, buy-and-hold.
-- **Regime switching:** a `target_schedule` lets the target book change with the rate
-  regime; a regime change forces a rebalance (used by the dynamic P4/P5 books).
-- **Transaction costs:** 10 bps one-way on traded turnover.
+## 6. Regimes (`Justification_sous_periodes_BNS.docx`)
 
-### Rebalancing sensitivity (AP5 benchmark)
-| Policy | CAGR | Vol | Sharpe | MaxDD | # rebal | turnover |
-|---|---|---|---|---|---|---|
-| Smart ±20% (base) | 4.99% | 8.5% | 0.61 | −18.5% | 2 | 12% |
-| Smart ±10% | 4.98% | 8.5% | 0.61 | −18.5% | 7 | 25% |
-| Smart ±30% | 5.16% | 8.8% | 0.62 | −18.5% | 1 | 12% |
-| Calendar quarterly | 4.92% | 8.3% | 0.62 | −18.0% | 28 | 41% |
-| Calendar annual | 4.90% | 8.3% | 0.61 | −18.0% | 8 | 22% |
-| Buy & hold | 5.53% | 9.1% | 0.63 | −18.5% | 0 | 0% |
+Four SNB regimes: **R1 2008–14** (low positive), **R2 2015–22** (negative, −0.75%),
+**R3 2022–24** (hikes to +1.75% then plateau), **R4 2024–26** (easing back to 0). Every
+book and the bond sleeve itself are measured in each regime — this replaces the contested
+"low-rate threshold" with an all-regime reading.
 
-Over this equity-bull window buy-and-hold edged the rebalanced books (letting equities run
-paid off); Smart Rebalancing delivers the *same* Sharpe at **a fraction of the turnover**
-of calendar rebalancing — its real value is discipline and cost control, not extra return.
+## 7. Replacement design
 
-## 7. Optimisation (`src/optimize.py`)
+Move **0 / 33 / 66 / 100%** of the 40.75% bond sleeve into the equal-weight basket of the
+six full-history alternatives; equity/RE/cash core fixed. Descriptive statistics and the
+Swiss-vs-world-bond redundancy test decide whether the sleeve can be simplified (it cannot:
+corr 0.79, divergent in R3). Optimisation is kept as a **secondary/appendix** exercise per
+the director.
 
-Long-only, box + group-budget constrained. The AP5 equity/real-estate/cash **core (58%)
-is held fixed**; only the **42% bond sleeve** is reallocated across Swiss bonds, world
-bonds and the 7 replacements — matching the mandate. Caps encode liquidity/prudence:
-gold ≤8%, convertibles ≤5%, CLO ≤15%, infra ≤10%, managed futures ≤8%, ILS ≤5%, private
-credit ≤3%, and **(ILS + private credit) ≤5%** total illiquid.
-
-Objectives: `max_sharpe`, `min_variance`, `min_cvar` (95%), `risk_parity`,
-`max_return_capvol`. Two corrections from the draft's caveats are applied to risk inputs:
-
-1. **Dimson-adjusted volatility** for smoothed/illiquid assets (private credit, ILS):
-   regress on contemporaneous + 2 lagged market returns, scale observed vol by the
-   true/contemporaneous beta ratio — recovers understated risk.
-2. **CVaR objective** for fat-tailed assets, since mean-variance understates ILS
-   catastrophe tails and private-credit smoothing.
-
-> **In-sample caveat.** `max_sharpe` is fitted to what worked in 2019–2026 (gold, managed
-> futures, CLO) and its Sharpe (~0.90) is optimistic/overfit. The **min-variance** and
-> **min-CVaR** books are far more stable across estimation windows and are the ones we
-> carry forward as *robust* recommendations.
-
-## 8. Metrics & stress tests
-
-- Per portfolio: CAGR, annualised vol, Sharpe, Sortino, max drawdown + duration, Calmar,
-  VaR/CVaR 95% & 99%, turnover.
-- **Crisis windows:** COVID crash (2020-02-19→03-23) & recovery, 2022 rate shock
-  (2022-01→10), SVB bank stress (Mar-2023), plus the full period. Results in
-  `analysis/stress_windows.csv`.
-
-## 8b. Robustness: out-of-sample & Monte Carlo
-
-- **Walk-forward** (`src/walkforward.py`): expanding-window, look-ahead-free optimisation.
-  Initial 24-month burn-in, re-estimate every 6 months on all data up to that date, apply
-  to the next unseen block (reusing the engine's `target_schedule`). OOS window
-  2021-07 → 2026-06. We report OOS metrics and the **in-sample-vs-OOS Sharpe gap** against a
-  full-sample look-ahead optimum (the "cheating" upper bound). Outputs:
-  `analysis/walkforward_*.csv`, figures 08–09.
-- **Block-bootstrap Monte Carlo** (`src/montecarlo.py`): stationary bootstrap (Politis-Romano;
-  geometric blocks, mean ≈ 20 trading days) resampling **whole return rows jointly** to
-  preserve cross-asset correlation, into **3,000 synthetic 7-year paths**. Portfolios are
-  evaluated **constant-mix** (daily-rebalanced) — a path maps to portfolio returns by a
-  matrix product; calendar/regime books (P4/P5, walk-forward) are excluded because bootstrap
-  shuffling destroys their time alignment. We report percentile distributions of
-  CAGR/vol/Sharpe/MaxDD and **P(beat AP5 benchmark)**. Outputs:
-  `analysis/montecarlo_*.csv`, figures 10–12.
-
-## 9. Reproduce
+## 8. Reproduce
 
 ```bash
-pip install pandas numpy scipy matplotlib requests
+pip install pandas numpy scipy matplotlib requests openpyxl
 export REQUESTS_CA_BUNDLE=/root/.ccr/ca-bundle.crt SSL_CERT_FILE=$REQUESTS_CA_BUNDLE
-python src/download_data.py      # -> data/processed/*.csv
-python src/run_analysis.py       # -> analysis/*.csv, reports/figures/01-07*.png
-python src/walkforward.py        # -> analysis/walkforward_*.csv, figures 08-09
-python src/montecarlo.py         # -> analysis/montecarlo_*.csv, figures 10-12
+python src/data_bloomberg.py      # -> constituents_chf_monthly, rates_monthly, vz_ap5_track
+python src/data_alternatives.py   # -> alternatives_chf_monthly
+python src/build_panel.py         # -> panel_levels_monthly, panel_returns_monthly
+python src/analysis_2008.py       # -> analysis/*.csv, reports/figures/01-07_*.png
 ```
-
-## 10. Known limitations
-
-1. Index/ETF **proxies**, not the exact VZ instrument line-up; sub-sleeve splits (SLI/SPI
-   Extra, EM, small caps, bond maturity buckets) are collapsed to one proxy per sleeve.
-2. **ILS and pre-2020 CLO are modelled series** — clearly labelled; treat their standalone
-   stats as illustrative.
-3. **Private credit** uses a listed BDC proxy (`BIZD`): daily-liquid and volatile, the
-   *opposite* of true direct-lending's smoothed NAV. It brackets the honest truth — real
-   private credit's low reported vol is a smoothing artefact (see Dimson adjustment).
-4. Single historical path (2019–2026). No Monte-Carlo/bootstrap resampling yet (a natural
-   thesis extension).
-5. Hedge carry uses stepwise policy-rate paths, not realised OIS/forward points.
