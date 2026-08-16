@@ -4,8 +4,8 @@ replace the AP5 bond sleeve with a diversified basket of investable alternatives
 WHOLE period, and study behaviour ACROSS four SNB rate regimes (not only low-rate windows).
 
 Pipeline
-  1. Load the monthly panel; define the real VZ AP5 strategic target and the replacement
-     books (bond sleeve replaced by 0 / 33 / 66 / 100 %).
+  1. Load the monthly panel; define the granular VZ AP5 target (Kundendoku slide 5) and the
+     replacement books (42% bond sleeve replaced in 10% steps: 0, 10, ..., 100%).
   2. Backtest every book with VZ Smart Rebalancing (monthly monitoring, +-20% bands),
      net of the agreed fee load (0.12% product + 1.25% management = 1.37% / yr).
   3. VALIDATE the reconstructed AP5 against the real VZ AP5 track record (2019-2026).
@@ -38,10 +38,22 @@ plt.rcParams.update({"figure.dpi": 120, "font.size": 9, "axes.grid": True,
 FEE_ANNUAL = 0.0012 + 0.0125          # product + management (agreed with the director)
 PER = 12                               # monthly
 
-# --- real VZ AP5 strategic target (current VVIA allocation, Consolidation_allocations) ---
-AP5 = {"world_equity": 0.2625, "swiss_equity": 0.25, "real_estate": 0.05,
-       "world_bonds": 0.2395, "swiss_bonds": 0.168, "cash": 0.03}
-BOND_SLEEVE = {"world_bonds": 0.2395, "swiss_bonds": 0.168}     # 40.75% total
+# --- AP5 strategic target: exact VZ Kundendoku slide-5 index composition (VVIA, profil 5) ---
+# Same-index provider splits collapsed to economic exposure; bar figures rounded on the slide.
+AP5 = {
+    # Aktien Schweiz 25%
+    "swiss_equity": 0.11, "sli": 0.12, "spi_extra": 0.02,        # SPI / SLI / SPI Extra
+    # Aktien Welt 25%
+    "world_equity": 0.19, "world_small": 0.03, "em_equity": 0.03,  # MSCI World / Small / EM
+    # Zinswerte Schweiz 16.8%
+    "swiss_bonds": 0.108, "swiss_bonds_1_5": 0.06,               # SBI AAA-BBB / 1-5
+    # Zinswerte Welt 25.2% (hedged CHF)
+    "world_bonds": 0.168, "world_bonds_1_5": 0.084,             # Global Agg / 1-5
+    # Immo CH 5% + Liquidités 3%
+    "real_estate": 0.05, "cash": 0.03,
+}
+BOND_SLEEVE = {"swiss_bonds": 0.108, "swiss_bonds_1_5": 0.06,   # 42% total (16.8 + 25.2)
+               "world_bonds": 0.168, "world_bonds_1_5": 0.084}
 BOND_TOTAL = sum(BOND_SLEEVE.values())
 CORE = {k: v for k, v in AP5.items() if k not in BOND_SLEEVE}  # equity/RE/cash, fixed
 
@@ -73,19 +85,32 @@ def replacement_book(frac: float, basket: dict = BASKET_W) -> dict:
     return {k: v for k, v in book.items() if v > 1e-9}
 
 
+# how each Consolidation_allocations category maps onto the granular AP5 sub-indices
+CATEGORY_SPLIT = {
+    "aktien_ch": {"swiss_equity": 0.11 / 0.25, "sli": 0.12 / 0.25, "spi_extra": 0.02 / 0.25},
+    "aktien_welt": {"world_equity": 0.19 / 0.25, "world_small": 0.03 / 0.25, "em_equity": 0.03 / 0.25},
+    "zins_ch": {"swiss_bonds": 0.108 / 0.168, "swiss_bonds_1_5": 0.06 / 0.168},
+    "zins_welt": {"world_bonds": 0.168 / 0.252, "world_bonds_1_5": 0.084 / 0.252},
+}
+
+
 def load_vz_drift():
-    """The real VZ AP5 target-allocation path (Consolidation_allocations.xlsx) as a
-    target_schedule, used to tighten the validation reconstruction."""
+    """The real VZ AP5 target-allocation path (Consolidation_allocations.xlsx, category level)
+    mapped onto the granular sub-indices, as a target_schedule for the validation."""
     wb = openpyxl.load_workbook(os.path.join(HERE, "data", "bloomberg",
                                              "Consolidation_allocations.xlsx"), data_only=True)
     ws = wb.active
+    f = lambda x: float(x) if x is not None else 0.0
     sched = []
     for row in ws.iter_rows(min_row=2, values_only=True):
         if row[0] is None:
             continue
-        f = lambda x: float(x) if x is not None else 0.0
-        book = {"world_equity": f(row[3]), "swiss_equity": f(row[4]), "real_estate": f(row[9]),
-                "world_bonds": f(row[7]), "swiss_bonds": f(row[8]), "cash": f(row[10])}
+        cats = {"aktien_welt": f(row[3]), "aktien_ch": f(row[4]),
+                "zins_welt": f(row[7]), "zins_ch": f(row[8])}
+        book = {"real_estate": f(row[9]), "cash": f(row[10])}
+        for cat, total in cats.items():
+            for idx, share in CATEGORY_SPLIT[cat].items():
+                book[idx] = book.get(idx, 0.0) + total * share
         s = sum(book.values())
         if s <= 0:
             continue
@@ -102,11 +127,15 @@ def net_of_fee(value: pd.Series, fee_annual: float = FEE_ANNUAL) -> pd.Series:
     return net / net.iloc[0] * 100
 
 
+STEPS = list(range(0, 101, 10))          # 0, 10, 20, ..., 100 % of the bond sleeve replaced
+
+
+def step_name(pct):
+    return "AP5" if pct == 0 else f"repl_{pct}"
+
+
 def run_books(px):
-    books = {"P0_AP5_benchmark": AP5,
-             "P1_replace_33": replacement_book(1 / 3),
-             "P2_replace_66": replacement_book(2 / 3),
-             "P3_replace_100": replacement_book(1.0)}
+    books = {step_name(p): (AP5 if p == 0 else replacement_book(p / 100)) for p in STEPS}
     gross, net, meta = {}, {}, {}
     for name, book in books.items():
         bt = backtest(px, book, mode="smart", rel_band=0.20, monitor_freq="ME", tc_bps=10)
@@ -121,8 +150,7 @@ def validate_vs_vz(px):
     vz = pd.read_csv(os.path.join(PROC, "vz_ap5_track_monthly.csv"),
                      index_col=0, parse_dates=True)["vz_ap5"]
     vz.index = vz.index.to_period("M").to_timestamp("M")
-    # validate with VZ's REAL allocation drift (tighter than fixed weights); the 2008
-    # backward extension still uses fixed strategic weights per the director.
+    # validate with VZ's REAL allocation drift mapped onto the granular sub-indices.
     sched = load_vz_drift()
     bt = backtest(px, AP5, target_schedule=sched, mode="smart", rel_band=0.05,
                   monitor_freq="ME", tc_bps=10)
@@ -191,7 +219,7 @@ def bond_sleeve_by_regime(px):
     for reg, (s, e) in REGIMES.items():
         seg = px.loc[(px.index >= s) & (px.index <= e)]
         rows[reg] = {}
-        for c in ["swiss_bonds", "world_bonds", "cash"]:
+        for c in ["swiss_bonds", "swiss_bonds_1_5", "world_bonds", "world_bonds_1_5", "cash"]:
             sub = seg[c].dropna()
             n = len(sub) - 1
             rows[reg][c] = (sub.iloc[-1] / sub.iloc[0]) ** (PER / n) - 1 if n > 0 else np.nan
@@ -201,9 +229,10 @@ def bond_sleeve_by_regime(px):
 # ------------------------------------------------------------------------------- figures
 def fig_cumulative(net):
     fig, ax = plt.subplots(figsize=(9.5, 5))
-    for k, v in net.items():
-        lw = 2.4 if k == "P0_AP5_benchmark" else 1.5
-        ax.plot(v, label=k, lw=lw)
+    show = ["AP5", "repl_20", "repl_40", "repl_60", "repl_80", "repl_100"]
+    for k in show:
+        lw = 2.4 if k == "AP5" else 1.4
+        ax.plot(net[k], label=k, lw=lw)
     for s, e in [REGIMES["R2_2015-22_negative"]]:
         ax.axvspan(pd.Timestamp(s), pd.Timestamp(e), color="grey", alpha=0.08)
     ax.set_title("Cumulative CHF total return, net of fees (2008-2026) — AP5 vs bond-replacement")
@@ -223,7 +252,7 @@ def fig_validation(r, v):
 
 def fig_drawdown(net):
     fig, ax = plt.subplots(figsize=(9.5, 4.2))
-    for k in ["P0_AP5_benchmark", "P3_replace_100"]:
+    for k in ["AP5", "repl_100"]:
         v = net[k]; dd = (v / v.cummax() - 1) * 100
         ax.plot(dd, label=k, lw=1.4)
     ax.set_title("Drawdown (%) — AP5 vs full bond-replacement"); ax.set_ylabel("Drawdown %")
@@ -232,7 +261,7 @@ def fig_drawdown(net):
 
 def fig_regime_bars(reg_tables):
     regs = [k for k in REGIMES if k != "Full_2008-26"]
-    books = ["P0_AP5_benchmark", "P3_replace_100"]
+    books = ["AP5", "repl_100"]
     fig, ax = plt.subplots(figsize=(9.5, 4.8))
     x = np.arange(len(regs)); w = 0.38
     for i, b in enumerate(books):
@@ -248,10 +277,11 @@ def fig_regime_bars(reg_tables):
 def fig_bonds_by_regime(bond_reg):
     regs = [k for k in REGIMES if k != "Full_2008-26"]
     fig, ax = plt.subplots(figsize=(9.5, 4.6))
-    x = np.arange(len(regs)); w = 0.27
-    for i, c in enumerate(["swiss_bonds", "world_bonds", "cash"]):
+    series = ["swiss_bonds", "world_bonds", "world_bonds_1_5", "cash"]
+    x = np.arange(len(regs)); w = 0.2
+    for i, c in enumerate(series):
         vals = [bond_reg.loc[r, c] * 100 for r in regs]
-        ax.bar(x + (i - 1) * w, vals, w, label=c)
+        ax.bar(x + (i - 1.5) * w, vals, w, label=c)
     ax.set_xticks(x); ax.set_xticklabels([r.split("_", 1)[1] for r in regs], fontsize=7.5)
     ax.axhline(0, color="k", lw=0.8)
     ax.set_ylabel("Annualised return %")
@@ -305,8 +335,8 @@ def run_curated(px):
 
 def fig_curated(net_books, curated_net):
     fig, ax = plt.subplots(figsize=(9.5, 5))
-    ax.plot(net_books["P0_AP5_benchmark"], label="P0_AP5_benchmark", lw=2.4, color="black")
-    ax.plot(net_books["P3_replace_100"], label="naive basket (100%)", lw=1.5, color="tab:orange")
+    ax.plot(net_books["AP5"], label="AP5", lw=2.4, color="black")
+    ax.plot(net_books["repl_100"], label="naive basket (100%)", lw=1.5, color="tab:orange")
     ax.plot(curated_net["curated_100"], label="curated basket (100%)", lw=1.8, color="tab:green")
     ax.set_title("Curated vs naive bond-replacement basket (100% replaced, net of fees)")
     ax.set_ylabel("Index (100 = 2008-01)"); ax.legend(fontsize=8)

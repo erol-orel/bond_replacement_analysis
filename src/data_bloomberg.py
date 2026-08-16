@@ -46,13 +46,17 @@ DIV_EM = 0.026      # MSCI EM net dividend yield add-back (annual)
 
 # (date column, value column) 0-indexed in "Indexes data - Bloomberg"
 IDX_COLS = {
-    "swiss_bonds": (1, 2),      # SBR14T  SBI AAA-BBB (CHF total return)
-    "swiss_equity": (9, 10),    # SPI     (CHF total return)
-    "world_equity": (15, 16),   # MXWO    MSCI World (USD price -> CHF TR proxy)
-    "em_equity": (19, 20),      # MXEF    MSCI EM     (USD price -> CHF TR proxy)
+    "swiss_bonds": (1, 2),      # SBR14T  SBI AAA-BBB           (CHF total return)
+    "swiss_bonds_1_5": (3, 4),  # ST15T   SBI AAA-BBB 1-5       (CHF total return, short)
+    "swiss_equity": (9, 10),    # SPI     Swiss Performance Idx (CHF total return)
+    "sli": (11, 12),            # SLI     Swiss Leader Index    (CHF total return)
+    "spi_extra": (13, 14),      # SPIEX   SPI Extra (mid/small) (CHF total return)
+    "world_equity": (15, 16),   # MXWO    MSCI World       (USD price -> CHF TR proxy)
+    "world_small": (17, 18),    # MXWOSC  MSCI World Small (USD price -> CHF TR proxy)
+    "em_equity": (19, 20),      # MXEF    MSCI EM          (USD price -> CHF TR proxy)
     "real_estate": (21, 22),    # SWIIT   SXI Real Estate Funds (CHF total return)
 }
-USD_INDICES = {"world_equity": DIV_WORLD, "em_equity": DIV_EM}
+USD_INDICES = {"world_equity": DIV_WORLD, "world_small": DIV_WORLD, "em_equity": DIV_EM}
 
 
 def _read_pairs(ws, dcol, vcol, start_row=5):

@@ -32,6 +32,15 @@ def main():
                         index_col=0, parse_dates=True)
     cash = build_cash(rates)
 
+    # Global Aggregate 1-5 (hedged, short world bonds) starts only in 2010; splice the broad
+    # Global Aggregate (hedged) returns backward as a proxy so 2008-2009 is covered.
+    if con["world_bonds_1_5"].isna().any():
+        wb15, broad = con["world_bonds_1_5"], con["world_bonds"]
+        first = wb15.first_valid_index()
+        ratio = wb15.loc[first] / broad.loc[first]
+        pre = con.index < first
+        con.loc[pre, "world_bonds_1_5"] = broad.loc[pre] * ratio
+
     # normalise every index to the same month-end grid before merging
     def to_me(obj):
         obj = obj.copy()

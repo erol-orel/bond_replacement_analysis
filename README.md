@@ -2,11 +2,11 @@
 
 Empirical support for the HEC Lausanne MSc Finance thesis
 *"Alternatives aux obligations dans la construction de portefeuille en environnement de
-taux bas."* We replicate the VZ **Anlageprofil 5 (AP5)** mandate from the **real Bloomberg
-constituent indices** with **VZ Smart Rebalancing**, extend it back to **January 2008**,
-and replace the 40.75% bond sleeve with investable alternatives **over the whole period** —
-read **regime by regime** (SNB). CHF, monthly total return, **net of fees** (0.12% product +
-1.25% management).
+taux bas."* We replicate the VZ **Anlageprofil 5 (AP5 / VVIA)** mandate from its **exact
+Bloomberg index constituents** (VZ Kundendoku slide 5) with **VZ Smart Rebalancing**, extend
+it back to **January 2008**, and replace the **42% bond sleeve** with investable alternatives
+**over the whole period** — read **regime by regime** (SNB). CHF, monthly total return, **net
+of fees** (0.12% product + 1.25% management).
 
 > **Reframed brief (Aug 2026, with the thesis director).** Replace bonds over the *whole*
 > sample and analyse by regime — bonds are a problem both when rates are *low* and when they
@@ -14,20 +14,22 @@ read **regime by regime** (SNB). CHF, monthly total return, **net of fees** (0.1
 > daily/Yahoo study is retained under `run_analysis.py` / `walkforward.py` / `montecarlo.py`.
 
 ## TL;DR findings
-- **Validated reconstruction**: rebuilt AP5 tracks the *real* VZ VVIA NAV at **0.94
-  correlation / 2.7% tracking error** (2019–2026) — the machinery is trustworthy (fig. 02).
-- **The bond problem is not only low rates.** Bonds delivered their premium **only when
-  rates fell** (R1 2008–14: +4%/yr). In the negative-rate era (R2) the sleeve earned ≈0;
-  when rates *rose* (R3 2022–24) **world bonds lost 2%/yr** on duration (fig. 05).
+- **Validated reconstruction**: rebuilt AP5 (granular index composition) tracks the *real* VZ
+  VVIA NAV at **0.955 correlation / 2.35% tracking error** (2019–2026) — trustworthy (fig. 02).
+- **The bond problem is not only low rates, and duration is the channel.** Bonds paid off
+  **only when rates fell** (R1 2008–14: +4%/yr). In the negative-rate era (R2) the sleeve
+  earned ≈0; when rates *rose* (R3 2022–24) broad world bonds **lost 2%/yr** — while the
+  short-duration (1-5) tranche lost only −0.8% (fig. 05).
 - **Replacement pays off conditionally**: it wins in the negative-rate (R2) and easing (R4)
   regimes, is neutral during hikes (R3), and *costs* return only when bonds rally (R1).
-- **No free lunch over the full cycle**: full replacement lifts CAGR 3.74% → 4.47% but
-  raises drawdown −19% → −27% with **Sharpe flat (0.51 → 0.49)**.
-- **Recommendation: partial (≈33–66%) replacement** — captures the regime upside, keeps a
-  bond core for flight-to-quality, avoids the drawdown penalty of going all-in.
-- **Keep both bond sub-indices** (Swiss vs world corr 0.79, divergent in the hiking regime).
-- Honest note: **commodities and managed futures lost money 2008–2026**; the equal-weight
-  basket carries them, so nothing is cherry-picked.
+- **No free lunch over the full cycle**: full replacement lifts CAGR 3.43% → 4.30% but raises
+  drawdown −21% → −28% with **Sharpe flat** (peaks only mildly, ~0.49 around 20–40%).
+- **Recommendation: partial (≈20–40%) replacement** — sits at the Sharpe peak, captures the
+  regime upside, keeps a bond core for flight-to-quality.
+- **Curate the basket**: dropping the two money-losers (commodities, managed futures) and
+  tilting to credit + gold lifts full-replacement Sharpe 0.47 → **0.53**, above AP5's 0.47.
+- **Excluded with reasons**: ILS, private equity/credit, and Swiss mortgage funds — all fail
+  the *investable / liquid / net-of-fee* bar (no public mark-to-market series). See methodology.
 
 ➡️ Résumé exécutif (FR): **[`reports/resume_executif.md`](reports/resume_executif.md)**
 · Full write-up: **[`reports/thesis_report.md`](reports/thesis_report.md)**
@@ -64,19 +66,15 @@ python src/appendix_optimization.py   # secondary/theoretical optimised sleeve (
 ```
 
 ## Portfolios (2008–2026 study)
-| ID | Book | Bond sleeve replaced |
-|---|---|---|
-| P0 | AP5 benchmark | 0% (the mandate, Smart-Rebalanced) |
-| P1 | Replace 33% | 33% of the 40.75% sleeve → diversified basket |
-| P2 | Replace 66% | 66% |
-| P3 | Replace 100% | 100% |
+Bond sleeve (42%) replaced in **10% steps**: `AP5` (0%), `repl_10`, `repl_20`, …, `repl_100`.
+Equity/RE/cash core held fixed at the granular AP5 composition.
 
-Naïve basket = equal weight of the six alternatives with full 2008 history (gold,
-commodities, infrastructure, managed futures, high yield, EM debt). A **curated** basket
-(HY 35 / EM debt 30 / gold 20 / infrastructure 15, dropping the two money-losers) dominates
-it — Sharpe 0.55 vs 0.49 at full replacement, above AP5's 0.51 (fig. 08). A secondary
-in-sample optimisation appendix (`appendix_optimization.py`) shows even the optimiser keeps
-bonds.
+Naïve basket = equal weight of the six alternatives with full 2008 history (gold, commodities,
+infrastructure, managed futures, high yield, EM debt). A **curated** basket (HY 35 / EM 30 /
+gold 20 / infra 15, dropping the two money-losers) dominates it — full-replacement Sharpe
+**0.53 vs 0.47**, above AP5's 0.47 (fig. 08). A secondary in-sample optimisation appendix
+(`appendix_optimization.py`) shows even the optimiser keeps bonds (min-variance → 100%
+short-duration world bonds).
 
 ## Important caveats
 Investable ETF/fund **proxies** (not the exact VZ funds); **monthly** frequency understates
