@@ -1,7 +1,7 @@
 {
   "meta": {
-    "code_commit": "dc384b7",
-    "code_commit_date": "2026-08-16T22:14:13+02:00",
+    "code_commit": "6db8ff5",
+    "code_commit_date": "2026-08-16T20:39:40+00:00",
     "note": "code_commit is HEAD at generation time; results are committed in the immediately following outputs-only commit, so this hash is the code that produced them (deterministic, no wall-clock stamp).",
     "python": "3.11.15",
     "numpy": "2.4.6",
