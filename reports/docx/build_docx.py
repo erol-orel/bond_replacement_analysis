@@ -51,6 +51,10 @@ def build(md_src, figdir, figs, out_docx, title, heading, toc=False):
 
 
 def main():
+    build(os.path.join(ROOT, "reports", "guide_pas_a_pas.md"), FIGFR, FR_FIGS,
+          os.path.join(HERE, "Guide_pas_a_pas_FR.docx"),
+          "Guide pas à pas — comprendre et justifier l'analyse (VZ AP5, 2008–2026)",
+          "Figures (illustrations)", toc=True)
     build(os.path.join(ROOT, "reports", "resume_executif.md"), FIGFR, FR_FIGS,
           os.path.join(HERE, "Resume_executif_FR.docx"),
           "Résumé exécutif — Alternatives aux obligations (VZ AP5, 2008–2026)",
