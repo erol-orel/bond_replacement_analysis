@@ -1,76 +1,77 @@
 {
   "meta": {
-    "code_commit": "6db8ff5",
-    "code_commit_date": "2026-08-16T20:39:40+00:00",
+    "code_commit": "b49d9a8",
+    "code_commit_date": "2026-08-16T21:09:40+00:00",
     "note": "code_commit is HEAD at generation time; results are committed in the immediately following outputs-only commit, so this hash is the code that produced them (deterministic, no wall-clock stamp).",
     "python": "3.11.15",
     "numpy": "2.4.6",
     "pandas": "3.0.5",
-    "sharpe_risk_free": "CHF cash proxy (excess return)"
+    "sharpe_risk_free": "CHF cash proxy (excess return)",
+    "rebalance_level": "category/sleeve-level VZ bands (primary); alternatives held as one 'alts' sleeve; per-constituent bands kept as robustness"
   },
-  "window": "2008-01..2026-06",
+  "window": "2008-02..2026-06",
   "frequency": "monthly",
   "fee_annual": 0.0137,
   "band_base_rel": 0.08,
   "tc_bps": 10.0,
   "bond_sleeve_pct": 42.0,
   "validation": {
-    "corr": 0.955,
-    "tracking_error_ann": 0.0235,
-    "mean_abs_month_gap": 0.005,
-    "recon_total": 0.251,
+    "corr": 0.9543,
+    "tracking_error_ann": 0.0237,
+    "mean_abs_month_gap": 0.0051,
+    "recon_total": 0.2525,
     "vz_total": 0.2109,
-    "reg_alpha_ann": -0.0035,
-    "reg_beta": 0.9692,
-    "reg_r2": 0.912
+    "reg_alpha_ann": -0.0037,
+    "reg_beta": 0.9703,
+    "reg_r2": 0.9108
   },
   "AP5": {
-    "CAGR": 0.034,
+    "CAGR": 0.0355,
     "Vol": 0.077,
-    "Sharpe": 0.462,
-    "MaxDD": -0.2059
+    "Sharpe": 0.483,
+    "MaxDD": -0.2035
   },
   "repl_100_primary": {
-    "CAGR": 0.0427,
-    "Vol": 0.1004,
-    "Sharpe": 0.46,
-    "MaxDD": -0.2791
+    "CAGR": 0.0428,
+    "Vol": 0.1005,
+    "Sharpe": 0.461,
+    "MaxDD": -0.2804
   },
   "curated_100_expost": {
-    "CAGR": 0.049,
-    "Sharpe": 0.522,
-    "MaxDD": -0.2737
+    "CAGR": 0.0489,
+    "Sharpe": 0.521,
+    "MaxDD": -0.2759
   },
   "sharpe_by_step": {
-    "AP5": 0.462,
-    "repl_10": 0.477,
-    "repl_20": 0.475,
-    "repl_30": 0.477,
-    "repl_40": 0.475,
-    "repl_50": 0.474,
-    "repl_60": 0.472,
-    "repl_70": 0.47,
-    "repl_80": 0.468,
+    "AP5": 0.483,
+    "repl_10": 0.482,
+    "repl_20": 0.482,
+    "repl_30": 0.479,
+    "repl_40": 0.478,
+    "repl_50": 0.478,
+    "repl_60": 0.476,
+    "repl_70": 0.472,
+    "repl_80": 0.471,
     "repl_90": 0.465,
-    "repl_100": 0.46
+    "repl_100": 0.461
   },
   "sharpe_by_step_rf0": {
-    "AP5": 0.473,
-    "repl_10": 0.486,
-    "repl_20": 0.484,
-    "repl_30": 0.485,
-    "repl_40": 0.483,
-    "repl_50": 0.482,
-    "repl_60": 0.481,
-    "repl_70": 0.478,
-    "repl_80": 0.475,
+    "AP5": 0.492,
+    "repl_10": 0.491,
+    "repl_20": 0.491,
+    "repl_30": 0.488,
+    "repl_40": 0.487,
+    "repl_50": 0.486,
+    "repl_60": 0.484,
+    "repl_70": 0.48,
+    "repl_80": 0.478,
     "repl_90": 0.472,
     "repl_100": 0.468
   },
   "bond_redundancy": {
-    "corr_swiss_world_bonds": 0.786,
-    "r2_shared_variance": 0.618,
-    "beta_swiss_on_world": 0.812,
+    "corr_swiss_world_bonds": 0.787,
+    "r2_shared_variance": 0.619,
+    "beta_swiss_on_world": 0.813,
     "corr_R3_hikes": 0.831
   }
 }

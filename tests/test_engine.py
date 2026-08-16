@@ -68,6 +68,24 @@ def test_transaction_cost_equals_turnover():
     assert abs(ratio - (1 - turn * tc / 1e4)) < 1e-9, "transaction cost != turnover * tc"
 
 
+def test_category_bands_ignore_within_category_drift():
+    # Two assets in the SAME category, one in another. The two same-category assets diverge
+    # (a up, b down) but their SUM stays put, while the cross-category weight is unchanged.
+    # Category-level monitoring must NOT rebalance; per-constituent monitoring MUST.
+    idx = pd.date_range("2008-01-31", periods=12, freq="ME")
+    pa = np.linspace(100, 180, 12)
+    px = pd.DataFrame({"a": pa,                              # a rises
+                       "b": 200 - pa,                         # b falls so a+b price is constant
+                       "c": np.full(12, 100.0)}, index=idx)  # c flat
+    tgt = {"a": 0.25, "b": 0.25, "c": 0.50}                  # X (a+b) dollar sum stays on target
+    gmap = {"a": "X", "b": "X", "c": "Y"}                    # a,b share category X
+    cat = backtest(px, tgt, mode="smart", rel_band=0.10, monitor_freq="ME",
+                   tc_bps=10, group_map=gmap)
+    gran = backtest(px, tgt, mode="smart", rel_band=0.10, monitor_freq="ME", tc_bps=10)
+    assert cat["n_rebal"] == 0, f"category X sum barely moves; no rebalance expected, got {cat['n_rebal']}"
+    assert gran["n_rebal"] >= 1, "per-constituent bands should trigger on the a/b divergence"
+
+
 def test_no_lookahead():
     # decisions up to time t must depend only on data up to t: two price paths identical up to
     # the split, wildly different after -> value series up to the split must be identical.

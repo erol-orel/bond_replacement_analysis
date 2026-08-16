@@ -100,13 +100,18 @@ the hedge assumption's impact (it lowers the full-replacement Sharpe from ~0.46 
 
 ## Step 5 — Fees
 
-The fee stack is explicit: (1) the instruments' **own fund-level expenses** are already in
-their total returns; (2) on top, a **VZ wrapper/management load of 1.37%/yr** (0.12% product +
-1.25% management, agreed with the director) is applied to **every** book as an **exact
-multiplicative** monthly drag, `net = gross × 1/(1+m)` with `(1+m)^12 = 1.0137`; (3)
-transaction costs (Step 6) and (4) the FX-hedge cost (Step 4) are separate. Applying the
-wrapper equally to AP5 and replacements keeps the comparison clean and matches the **net** VZ
-NAV used in validation.
+The fee stack is explicit. The underlying proxy returns are used as the **market benchmark
+returns**: where a proxy is a fund/ETF (the alternatives), its **fund-level costs are reflected
+in the observed total-return series**; where a proxy is a Bloomberg **index** total-return series
+(the AP5 equity/RE/bond core), the series is a gross-of-vehicle-cost market benchmark and does
+**not** contain the specific vehicle-level costs of the actual VZ funds. On top of these proxy
+returns, the **common VZ wrapper/management load of 1.37%/yr** (0.12% product + 1.25% management,
+agreed with the director) is applied to **every** book as an **exact multiplicative** monthly
+drag, `net = gross × 1/(1+m)` with `(1+m)^12 = 1.0137`. This 1.37% is a **constant fee assumption
+held over the full historical reconstruction** — it does not attempt to reconstruct VZ's exact
+historical fee schedule back to 2008. Transaction costs (Step 6) and the FX-hedge cost (Step 4)
+are separate. Applying the wrapper equally to AP5 and replacements keeps the comparison clean and
+matches the **net** VZ NAV used in validation.
 
 ## Step 6 — Rebalancing (`engine.py`)
 
@@ -118,10 +123,29 @@ generalise the example is a **reconstruction assumption**, not "the VZ rule". We
 **VZ-consistent ±8% relative** as the base case and show in `robustness.py` that the conclusion
 is unchanged across **±5 / 10 / 15 / 20%**. (This is a **single-band** approximation — the
 engine has one band and snaps to target on breach; it does not reproduce VZ's separate 48–52%
-soft / 46–54% hard levels, which are not a published operational rule.) When a sleeve leaves its
-band the whole book snaps to target;
-10 bps one-way transaction cost (0–50 bps sensitivity). The engine is frequency-agnostic;
-monthly metrics annualise with `periods = 12`.
+soft / 46–54% hard levels, which are not a published operational rule.)
+
+**Monitoring level (primary specification).** The VZ documentation describes Smart Rebalancing at
+the **allocation-category level** (the 50% example is a *category* allocation, not an individual
+index). The primary specification therefore monitors the ±8% band on **category weights** — Swiss
+equities, world equities, Swiss bonds, world bonds, real estate, cash, and the replacement
+alternatives as **one "alts" sleeve** with fixed internal (equal) weights — via the engine's
+`group_map` argument. The research question is about replacing the **42% bond sleeve**, not about
+inventing a new six-asset micro-rebalancing scheme, so the alternatives are held as a single
+sleeve rather than each carrying its own tight ±8% band. Monitoring every individual constituent
+(per-constituent bands) is kept only as a **robustness comparison**
+(`analysis/robustness_granular_vs_category.csv`): it rebalances far more often (≈61–96 vs ≈36–37
+triggers over 2008–26) but leaves CAGR/Sharpe/MaxDD essentially unchanged, so the conclusion does
+**not** depend on the band architecture.
+
+**Whole-book restore (reconstruction assumption).** When a monitored category leaves its band the
+engine restores the **whole book to the strategic target** (`w = target`). The VZ documentation
+supports monitoring, predefined bands, and correcting allocations when thresholds are exceeded,
+but it does **not** publish the internal trade-allocation algorithm. *We assume that a triggered
+rebalance restores the monitored category allocation to its strategic target; the exact VZ
+trade-allocation mechanism is not observable from the available documentation.* Costs are 10 bps
+one-way transaction cost (0–50 bps sensitivity). The engine is frequency-agnostic; monthly metrics
+annualise with `periods = 12`.
 
 ## Step 7 — The replacement candidates (`data_alternatives.py`)
 
@@ -138,7 +162,8 @@ all fees is computable, with a long history* — we use investable index/ETF pro
 | High yield (HYG) | credit carry | **CHF-hedged** |
 | EM debt (EMB) | credit carry | **CHF-hedged** |
 
-The **naïve basket** equal-weights the six with full 2008 history; a **curated basket**
+The **naïve basket** equal-weights the six with histories beginning in 2008 (EM debt from
+2008-02, which fixes the common 2008-02 – 2026-06 sample window); a **curated basket**
 (HY 35 / EM 30 / gold 20 / infra 15) drops the two money-losers and tilts to defensive carry.
 
 ### Candidates deliberately excluded (and why)

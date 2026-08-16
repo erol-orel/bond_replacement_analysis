@@ -25,7 +25,8 @@ BOND_TOTAL = round(sum(BOND_SLEEVE.values()), 6)                    # 0.42
 CORE = {k: v for k, v in AP5.items() if k not in BOND_SLEEVE}      # equity/RE/cash, fixed
 
 # ---- replacement candidates -------------------------------------------------------------
-# primary basket: the six alternatives with full 2008 history, EQUAL WEIGHT (pre-specified)
+# primary basket: the six alternatives with histories beginning in 2008 (EM debt from 2008-02,
+# which sets the common sample window), EQUAL WEIGHT (pre-specified)
 PRIMARY_BASKET = ["gold", "commodities", "infrastructure", "managed_futures",
                   "high_yield", "em_debt"]
 PRIMARY_W = {k: 1.0 / len(PRIMARY_BASKET) for k in PRIMARY_BASKET}
@@ -46,8 +47,25 @@ BAND_BASE = 0.08
 BAND_GRID = [0.05, 0.08, 0.10, 0.15, 0.20]
 TC_GRID = [0.0, 5.0, 10.0, 25.0, 50.0]
 
-START, END = "2008-01-31", "2026-06-30"
+# Common sample start: EM debt (in the primary basket) begins 2008-02, so every book is
+# measured over the SAME window 2008-02 .. 2026-06 (audit: identical sample for all books).
+START, END = "2008-02-29", "2026-06-30"
 STEPS = list(range(0, 101, 10))        # 0, 10, ..., 100 % of the bond sleeve replaced
+
+# VZ monitors Smart Rebalancing at the CATEGORY/sleeve level, not per individual index.
+# Bands are checked on these category weights; the six alternatives form ONE "alts" sleeve
+# with fixed internal (equal) weights (the primary specification). Per-constituent monitoring
+# is kept only as a robustness comparison (robustness.py).
+CATEGORY = {
+    "swiss_equity": "eq_ch", "sli": "eq_ch", "spi_extra": "eq_ch",
+    "world_equity": "eq_world", "world_small": "eq_world", "em_equity": "eq_world",
+    "swiss_bonds": "bond_ch", "swiss_bonds_1_5": "bond_ch",
+    "world_bonds": "bond_world", "world_bonds_1_5": "bond_world",
+    "real_estate": "realestate", "cash": "cash",
+    "gold": "alts", "commodities": "alts", "infrastructure": "alts",
+    "managed_futures": "alts", "high_yield": "alts", "em_debt": "alts",
+    "convertibles": "alts", "high_yield_unhedged": "alts", "em_debt_unhedged": "alts",
+}
 
 # four SNB rate regimes (Justification_sous_periodes_BNS.docx)
 REGIMES = {

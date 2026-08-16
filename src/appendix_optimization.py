@@ -21,7 +21,7 @@ import optimize
 optimize.TRADING = 12                      # monthly annualisation for this appendix
 from optimize import optimise               # noqa: E402
 from engine import backtest, perf_metrics   # noqa: E402
-from config_main import BAND_BASE, TC_BPS   # noqa: E402
+from config_main import BAND_BASE, TC_BPS, CATEGORY, START   # noqa: E402
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROC = os.path.join(HERE, "data", "processed")
@@ -52,6 +52,7 @@ def net_of_fee(value, fee=0.0137):
 def main():
     px = pd.read_csv(os.path.join(PROC, "panel_levels_monthly.csv"),
                      index_col=0, parse_dates=True)
+    px = px.loc[px.index >= pd.Timestamp(START)]      # common sample window (audit 4)
     cols = list(CORE) + SLEEVE
     R = px[cols].pct_change().dropna()
     cov = R.cov() * PER
@@ -66,7 +67,8 @@ def main():
     cash_ret = px["cash"].pct_change()
     rows, weights = {}, {}
     for name, w in books.items():
-        bt = backtest(px, w, mode="smart", rel_band=BAND_BASE, monitor_freq="ME", tc_bps=TC_BPS)
+        bt = backtest(px, w, mode="smart", rel_band=BAND_BASE, monitor_freq="ME", tc_bps=TC_BPS,
+                      group_map=CATEGORY)
         m = perf_metrics(net_of_fee(bt["value"]), periods=PER, rf_series=cash_ret)
         rows[name] = {k: m[k] for k in ["CAGR", "Vol", "Sharpe", "MaxDD", "CVaR95"]}
         weights[name] = w

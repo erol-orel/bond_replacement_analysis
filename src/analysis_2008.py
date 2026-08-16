@@ -37,7 +37,7 @@ plt.rcParams.update({"figure.dpi": 120, "font.size": 9, "axes.grid": True,
 
 from config_main import (AP5, BOND_SLEEVE, BOND_TOTAL, CORE, PRIMARY_W as BASKET_W,
                          CURATED_W, REGIMES, STEPS, PER, FEE_ANNUAL, BAND_BASE, TC_BPS,
-                         step_name)
+                         CATEGORY, START, step_name)
 
 BASKET = list(BASKET_W)
 
@@ -99,7 +99,8 @@ def run_books(px):
     books = {step_name(p): (AP5 if p == 0 else replacement_book(p / 100)) for p in STEPS}
     gross, net, meta = {}, {}, {}
     for name, book in books.items():
-        bt = backtest(px, book, mode="smart", rel_band=BAND_BASE, monitor_freq="ME", tc_bps=TC_BPS)
+        bt = backtest(px, book, mode="smart", rel_band=BAND_BASE, monitor_freq="ME",
+                      tc_bps=TC_BPS, group_map=CATEGORY)
         gross[name] = bt["value"]
         net[name] = net_of_fee(bt["value"])
         meta[name] = dict(n_rebal=bt["n_rebal"], turnover=round(bt["turnover"], 2))
@@ -118,7 +119,7 @@ def validate_vs_vz(px):
     # exact historical trading sequence.
     sched = load_vz_drift()
     bt = backtest(px, AP5, target_schedule=sched, mode="smart", rel_band=0.05,
-                  monitor_freq="ME", tc_bps=TC_BPS)
+                  monitor_freq="ME", tc_bps=TC_BPS, group_map=CATEGORY)
     recon = net_of_fee(bt["value"])
     # align to VZ window and rebase both to 100 at first common month
     common = recon.index.intersection(vz.index)
@@ -324,7 +325,7 @@ def run_curated(px):
     for tag, basket in [("naive", BASKET_W), ("curated", CURATED_W)]:
         for frac in (1 / 3, 2 / 3, 1.0):
             bt = backtest(px, replacement_book(frac, basket), mode="smart", rel_band=BAND_BASE,
-                          monitor_freq="ME", tc_bps=TC_BPS)
+                          monitor_freq="ME", tc_bps=TC_BPS, group_map=CATEGORY)
             net[f"{tag}_{int(round(frac*100))}"] = net_of_fee(bt["value"])
     rows = {k: perf_metrics(v, periods=PER, rf_series=cash_ret) for k, v in net.items()}
     tbl = pd.DataFrame(rows).T[["CAGR", "Vol", "Sharpe", "MaxDD", "CVaR95"]]
@@ -344,6 +345,7 @@ def fig_curated(net_books, curated_net):
 def main():
     px = pd.read_csv(os.path.join(PROC, "panel_levels_monthly.csv"),
                      index_col=0, parse_dates=True)
+    px = px.loc[px.index >= pd.Timestamp(START)]   # common sample window for all books
 
     # CHF cash proxy monthly return = the risk-free rate for Sharpe/Sortino (excess returns)
     cash_ret = px["cash"].pct_change()
@@ -389,8 +391,10 @@ def main():
                           "immediately following outputs-only commit, so this hash is the code "
                           "that produced them (deterministic, no wall-clock stamp)."),
                  "python": sys.version.split()[0], "numpy": np.__version__,
-                 "pandas": pd.__version__, "sharpe_risk_free": "CHF cash proxy (excess return)"},
-        "window": "2008-01..2026-06", "frequency": "monthly", "fee_annual": FEE_ANNUAL,
+                 "pandas": pd.__version__, "sharpe_risk_free": "CHF cash proxy (excess return)",
+                 "rebalance_level": ("category/sleeve-level VZ bands (primary); alternatives held "
+                                     "as one 'alts' sleeve; per-constituent bands kept as robustness")},
+        "window": "2008-02..2026-06", "frequency": "monthly", "fee_annual": FEE_ANNUAL,
         "band_base_rel": BAND_BASE, "tc_bps": TC_BPS, "bond_sleeve_pct": round(BOND_TOTAL * 100, 2),
         "validation": {k: round(val[k], 4) for k in
                        ["corr", "tracking_error_ann", "mean_abs_month_gap", "recon_total",
