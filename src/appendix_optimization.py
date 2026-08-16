@@ -27,12 +27,17 @@ PROC = os.path.join(HERE, "data", "processed")
 ANL = os.path.join(HERE, "analysis")
 PER = 12
 
-CORE = {"world_equity": 0.2625, "swiss_equity": 0.25, "real_estate": 0.05, "cash": 0.03}
-SLEEVE = ["swiss_bonds", "world_bonds", "gold", "commodities", "infrastructure",
-          "managed_futures", "high_yield", "em_debt"]
+# granular AP5 equity/RE/cash core, held fixed (58%)
+CORE = {"swiss_equity": 0.11, "sli": 0.12, "spi_extra": 0.02,
+        "world_equity": 0.19, "world_small": 0.03, "em_equity": 0.03,
+        "real_estate": 0.05, "cash": 0.03}
+# the 42% sleeve: four bond tranches + six alternatives
+SLEEVE = ["swiss_bonds", "swiss_bonds_1_5", "world_bonds", "world_bonds_1_5",
+          "gold", "commodities", "infrastructure", "managed_futures", "high_yield", "em_debt"]
 # realistic caps so no single alternative dominates the defensive sleeve
-CAPS = {"swiss_bonds": (0, 0.4075), "world_bonds": (0, 0.4075), "gold": (0, 0.12),
-        "commodities": (0, 0.08), "infrastructure": (0, 0.10), "managed_futures": (0, 0.10),
+CAPS = {"swiss_bonds": (0, 0.42), "swiss_bonds_1_5": (0, 0.42), "world_bonds": (0, 0.42),
+        "world_bonds_1_5": (0, 0.42), "gold": (0, 0.12), "commodities": (0, 0.08),
+        "infrastructure": (0, 0.10), "managed_futures": (0, 0.10),
         "high_yield": (0, 0.20), "em_debt": (0, 0.15)}
 
 
@@ -70,7 +75,7 @@ def main():
     pd.set_option("display.width", 220, "display.max_columns", 20)
     print("=== APPENDIX: optimised sleeve (IN-SAMPLE, secondary) — net of fees ===")
     print((tbl * [100, 100, 1, 100, 100]).round(2).to_string())
-    print("\nSleeve weights (equity/RE/cash core fixed at 59.25%):")
+    print("\nSleeve weights (equity/RE/cash core fixed at 58%):")
     print((wt[[c for c in SLEEVE if c in wt.columns]] * 100).round(1).to_string())
     print("\nNote: in-sample, optimistic; a descriptive upper bound, not a recommendation.")
 
