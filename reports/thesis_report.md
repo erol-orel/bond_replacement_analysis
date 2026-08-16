@@ -91,6 +91,20 @@ Reconstructed AP5 vs the **actual VZ VVIA NAV**, 2019–2026 (85 months, fig. 02
 | Annualised tracking error | 2.35% |
 | Cumulative: reconstruction vs VZ | +25.1% vs +21.1% |
 
+The validation is **almost independent of the monitoring band**, because VZ's recorded target
+drift drives most rebalances and the band only triggers between recorded changes
+(`analysis/ap5_validation_band_sensitivity.csv`):
+
+| Validation band | corr | TE (ann.) | β | R² |
+|---|---|---|---|---|
+| ±5% (base) | 0.9543 | 2.37% | 0.970 | 0.911 |
+| ±8% (main-model band) | 0.9540 | 2.38% | 0.967 | 0.910 |
+| ±10% | 0.9540 | 2.38% | 0.967 | 0.910 |
+| ±20% | 0.9525 | 2.41% | 0.969 | 0.907 |
+
+So the excellent validation is **not an artefact of the tight 5% band** — it holds equally at the
+±8% base band used by the main model.
+
 The reconstruction tracks the real product closely (β≈1, R²≈0.91) but carries a ~2.4%/yr
 tracking error and a ~4pp cumulative gap. The foreign-equity proxy (a USD price index + FX
 standing in for 50% of the book) is a **plausible important contributor** to the residual — we

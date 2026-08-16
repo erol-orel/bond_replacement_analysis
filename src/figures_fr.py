@@ -52,7 +52,7 @@ def main():
     ax.axvspan(pd.Timestamp(REGIMES["R2_2015-22_negative"][0]),
                pd.Timestamp(REGIMES["R2_2015-22_negative"][1]), color="grey", alpha=0.08)
     ax.set_title("Rendement total cumulé en CHF, net de frais (2008–2026)\nAP5 vs remplacement obligataire")
-    ax.set_ylabel("Indice (100 = janv. 2008)"); ax.set_xlabel("Année")
+    ax.set_ylabel("Indice (100 = févr. 2008)"); ax.set_xlabel("Année")
     ax.legend(fontsize=9); save(fig, "01_rendement_cumule.png")
 
     # 02 — validation
@@ -94,7 +94,7 @@ def main():
     ax.plot(net["repl_100"], label="Panier naïf (100 %)", lw=1.5, color="tab:orange")
     ax.plot(curated_net["curated_100"], label="Panier curated (100 %)", lw=1.8, color="tab:green")
     ax.set_title("Panier curated vs naïf (100 % remplacé, net de frais)")
-    ax.set_ylabel("Indice (100 = janv. 2008)"); ax.set_xlabel("Année")
+    ax.set_ylabel("Indice (100 = févr. 2008)"); ax.set_xlabel("Année")
     ax.legend(fontsize=9); save(fig, "08_curated_vs_naif.png")
 
     print("Figures FR (300 dpi) écrites dans reports/figures_fr/ :")
