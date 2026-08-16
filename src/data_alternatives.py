@@ -70,7 +70,10 @@ def main():
     rates = pd.read_csv(os.path.join(PROC, "rates_monthly.csv"),
                         index_col=0, parse_dates=True)
     usdchf = fetch_yahoo("CHF=X")                    # CHF per USD (spot)
-    carry = (rates["snb"] - rates["fed"]) / 100.0 / 12.0   # monthly CHF-hedge carry
+    # hedge carry uses the PRIOR month-end rate differential (available at month start) to avoid
+    # applying an intra-month policy-rate change retrospectively (audit: no-lookahead).
+    carry = ((rates["snb"] - rates["fed"]).shift(1) / 100.0 / 12.0)
+    carry = carry.fillna((rates["snb"] - rates["fed"]).iloc[0] / 100.0 / 12.0)
 
     out = {}
     for name, tk in UNHEDGED.items():

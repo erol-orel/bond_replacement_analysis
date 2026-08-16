@@ -11,9 +11,11 @@ tested. Base-case values live in `src/config_main.py`.
 | A4 | Band **width** (general rule) | **Assumption** (slide shows only ±8% at 50%) | ±20% rel | band grid ±5/8/10/15/20% |
 | A5 | Only bonds hedged to CHF (AP5 core) | **Observed** (PM email) | hedged | — |
 | A6 | HY/EM replacements hedged to CHF | **Assumption** | hedged | hedged vs unhedged variant |
-| A7 | CHF hedge = policy-rate-implied approximation | Assumption | (r_CHF−r_USD)/12 | (ignores fwd points/basis) |
+| A7 | CHF hedge = policy-rate approximation, **prior**-month rate (no look-ahead) | Assumption | (r_CHF−r_USD)/12 lagged | hedged vs unhedged; ignores fwd points/basis |
 | A8 | Foreign-equity CHF TR = USD price × FX + fixed div | Assumption | div 2.1%/2.6% ex-ante | validation regression |
-| A9 | Cash = SNB policy-rate proxy, full pass-through | Assumption | snb/12 | (SARON refinement noted) |
+| A9 | Cash = SNB policy-rate proxy, **prior**-month rate, full pass-through | Assumption | snb/12 lagged | risk-free for Sharpe; SARON refinement noted |
+| A16 | Validation: within-category index proportions constant over 2019–26 | Assumption | Kundendoku split | (category-level VZ history only) |
+| A17 | Sharpe/Sortino = excess over the CHF cash proxy (MAR = cash) | Choice | CHF cash | zero-rf variant reported (≈ +0.01) |
 | A10 | Fee load 1.37%/yr (0.12%+1.25%) on every book | **Agreed** (director) | 1.37% | fee applied equally |
 | A11 | Transaction cost 10 bps one-way | Assumption | 10 bps | cost grid 0/5/10/25/50 |
 | A12 | Short world-bond splice pre-2010 (broad→short) | Assumption | splice | re-run from 2010 |

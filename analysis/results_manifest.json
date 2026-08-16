@@ -1,4 +1,12 @@
 {
+  "meta": {
+    "code_commit": "29bf14f",
+    "generated_utc": "2026-08-16T21:46:16+02:00",
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "pandas": "3.0.5",
+    "sharpe_risk_free": "CHF cash proxy (excess return)"
+  },
   "window": "2008-01..2026-06",
   "frequency": "monthly",
   "fee_annual": 0.0137,
@@ -18,21 +26,34 @@
   "AP5": {
     "CAGR": 0.0343,
     "Vol": 0.078,
-    "Sharpe": 0.472,
+    "Sharpe": 0.463,
     "MaxDD": -0.2055
   },
   "repl_100_primary": {
     "CAGR": 0.043,
     "Vol": 0.1006,
-    "Sharpe": 0.47,
-    "MaxDD": -0.2769
+    "Sharpe": 0.464,
+    "MaxDD": -0.2768
   },
   "curated_100_expost": {
-    "CAGR": 0.049,
-    "Sharpe": 0.528,
-    "MaxDD": -0.2749
+    "CAGR": 0.0491,
+    "Sharpe": 0.522,
+    "MaxDD": -0.2748
   },
   "sharpe_by_step": {
+    "AP5": 0.463,
+    "repl_10": 0.474,
+    "repl_20": 0.484,
+    "repl_30": 0.48,
+    "repl_40": 0.479,
+    "repl_50": 0.478,
+    "repl_60": 0.473,
+    "repl_70": 0.471,
+    "repl_80": 0.47,
+    "repl_90": 0.468,
+    "repl_100": 0.464
+  },
+  "sharpe_by_step_rf0": {
     "AP5": 0.472,
     "repl_10": 0.481,
     "repl_20": 0.491,
@@ -45,5 +66,10 @@
     "repl_90": 0.474,
     "repl_100": 0.47
   },
-  "swiss_world_bond_corr": 0.786
+  "bond_redundancy": {
+    "corr_swiss_world_bonds": 0.786,
+    "r2_shared_variance": 0.618,
+    "beta_swiss_on_world": 0.812,
+    "corr_R3_hikes": 0.831
+  }
 }
