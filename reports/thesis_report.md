@@ -25,14 +25,18 @@ alternative replaces all six. We test:
   replacement.
 
 Verdict (developed below, from the bootstrap in §6.3):
-- **H1 supported** — return rises monotonically with replacement (point estimates).
-- **H2a — suggestive**: the bootstrap distribution consistently favours worse drawdowns
-  (P(worse) rising to 91% at full replacement), but the 95% interval for ΔMaxDD still
-  **includes zero**, so it is not conventionally significant at the 5% level.
-- **H2b — supported**: worse **tail loss (CVaR)** is far more decisive — P(worse) reaches
-  ≈95% by a 20% replacement and ≈100% beyond.
+- **H1 — descriptive support**: the point estimate of CAGR rises monotonically with
+  replacement, but the bootstrap does **not** establish a significant positive return
+  difference (P(ΔCAGR>0) ≈ 80–84%; the 95% CI includes zero at each level).
+- **H2a — suggestive**: the bootstrap consistently favours worse drawdowns (P(worse) rising to
+  92% at full replacement), but the 95% interval for ΔMaxDD still **includes zero**, so it is
+  not conventionally significant at the 5% level.
+- **H2b — strong evidence**: worse **tail loss (CVaR)** is far more decisive — P(worse) reaches
+  ≈99–100% by a 20% replacement (and holds at both the 90% and 95% CVaR thresholds, and across
+  bootstrap block lengths of 3/6/12 months). We call this *strong evidence* rather than
+  "significant" because no formal one-sided 95% decision rule is pre-registered.
 - **H3 — descriptive support**: the sign of the replacement effect changes across regimes and
-  crisis types (this is a descriptive, not a formally tested, interaction).
+  crisis types (a descriptive, not a formally tested, interaction).
 - **H4 — qualified**: partial replacement is the better *compromise*, but the risk-adjusted
   (Sharpe) differences across low-to-moderate replacement are **within bootstrap noise**, so we
   do **not** claim a unique optimal ratio. Full replacement is not supported.
@@ -61,8 +65,9 @@ weights historically.
   (2019–2026, for validation); the VZ allocation-drift history.
 - **Rebalancing**: band-based monitoring. The VZ slide-5 example (50% target, 46–54% hard
   bounds) implies **≈±8% relative** bands; the exact general rule is not published, so band
-  width is a **reconstruction assumption**. Base case ±20%; §7 shows the conclusion is
-  insensitive to ±5/8/10/15/20%.
+  width is a **reconstruction assumption**. We take the **VZ-consistent ±8% as the base case**
+  and show the conclusion is insensitive to ±5/10/15/20% (§7). Sharpe/Sortino are computed as
+  **excess over the CHF cash proxy** (a zero-risk-free variant differs by ~0.01).
 - **Currency**: VZ hedges *only its global bond sleeve* to CHF. Equities/real assets are
   unhedged. Hedging the credit-like replacements (HY, EM debt) is **our assumption**, modelled
   as a **policy-rate-implied approximation** (ignores forward points/basis); §7 tests unhedged.
@@ -105,15 +110,17 @@ though CHF-hedged UCITS equivalents exist). "Market-investable" ≠ "Swiss-retai
 the thesis measures the former; a Swiss investor would implement via the appropriate local
 vehicle. Included candidates, classified by *which function of bonds* they proxy:
 
-| Instrument (US proxy) | Function proxied | Swiss-retail accessible? | CAGR | Vol | Sharpe | MaxDD |
+Sharpe below is **excess over the CHF cash proxy** (same basis as the portfolio tables):
+
+| Instrument (US proxy) | Function proxied | Swiss-retail accessible? | CAGR | Vol | Sharpe (vs cash) | MaxDD |
 |---|---|---|---|---|---|---|
-| High yield (HYG, hedged) | income/carry | via CHF-hedged UCITS | 3.7% | 10.3% | 0.41 | −29% |
-| EM debt (EMB, hedged) | income/carry | via CHF-hedged UCITS | 3.3% | 11.5% | 0.34 | −28% |
-| Gold (GLD) | crisis diversifier / store of value | via Swiss gold ETF | 6.2% | 16.3% | 0.45 | −38% |
-| Managed futures (RYMFX) | crisis diversifier | limited / qualified | **−0.7%** | 13.8% | 0.02 | −47% |
-| Commodities (DBC) | inflation hedge | via UCITS | **−1.6%** | 18.9% | 0.01 | −76% |
+| High yield (HYG, hedged) | income/carry | via CHF-hedged UCITS | 3.7% | 10.3% | 0.40 | −29% |
+| EM debt (EMB, hedged) | income/carry | via CHF-hedged UCITS | 3.3% | 11.5% | 0.33 | −28% |
+| Gold (GLD) | crisis diversifier / store of value | via Swiss gold ETF | 6.2% | 16.3% | 0.44 | −38% |
+| Managed futures (RYMFX) | crisis diversifier | limited / qualified | **−0.7%** | 13.8% | 0.01 | −47% |
+| Commodities (DBC) | inflation hedge | via UCITS | **−1.6%** | 18.9% | 0.00 | −76% |
 | Infrastructure (IGF) | real income / inflation | via UCITS | 3.7% | 14.8% | 0.32 | −45% |
-| Convertibles (CWB, 2009) | hybrid (equity-linked) | via UCITS | 10.0% | 12.6% | 0.82 | −24% |
+| Convertibles (CWB, 2009) | hybrid (equity-linked) | via UCITS | 10.0% | 12.6% | 0.83 | −24% |
 
 Crucially, **none is a duration substitute** — the bond function hardest to replace. So the
 basket is a *bond-sleeve* replacement (replacing what the sleeve mostly *does* — carry,
@@ -160,10 +167,10 @@ Full period, net of fees (0–100% of the sleeve replaced by the primary basket)
 
 | Book | CAGR | Vol | Sharpe (vs cash) | MaxDD | CVaR₉₅ |
 |---|---|---|---|---|---|
-| AP5 (0%) | 3.43% | 7.8% | 0.46 | −20.6% | −5.2% |
-| Replace 20% | 3.72% | 8.1% | 0.48 | −21.8% | −5.6% |
-| Replace 50% | 3.94% | 8.8% | 0.48 | −24.0% | −6.1% |
-| Replace 100% | 4.30% | 10.1% | 0.46 | −27.7% | −7.1% |
+| AP5 (0%) | 3.40% | 7.7% | 0.46 | −20.6% | −5.1% |
+| Replace 20% | 3.65% | 8.1% | 0.48 | −21.8% | −5.6% |
+| Replace 50% | 3.91% | 8.8% | 0.47 | −24.1% | −6.1% |
+| Replace 100% | 4.27% | 10.0% | 0.46 | −27.9% | −7.1% |
 
 **More replacement → higher return, higher volatility, deeper drawdown and tail loss, roughly
 unchanged Sharpe.** That clean monotonic trade-off is the central finding.
@@ -175,17 +182,19 @@ returns generated by the band-rebalanced strategies** — i.e. it quantifies sam
 conditional on the realised return process, not full model/strategy uncertainty. Differences
 vs AP5:
 
-| Replacement | ΔSharpe median [5%, 95%] | P(ΔSharpe>0) | ΔMaxDD 95% CI · P(worse) | P(worse CVaR) |
+| Replacement | P(ΔCAGR>0) | ΔSharpe [5%, 95%] · P(>0) | P(worse MaxDD) | P(worse CVaR95) |
 |---|---|---|---|---|
-| 20% | +0.007 [−0.03, +0.04] | 62% | [−2.4pp, +1.2pp] · 73% | **95%** |
-| 50% | −0.002 [−0.07, +0.07] | 49% | [−5.8pp, +2.0pp] · 84% | ≈100% |
-| 100% | −0.018 [−0.13, +0.11] | 41% | [−11.8pp, +1.4pp] · 91% | ≈100% |
+| 20% | 80% | [−0.03, +0.03] · 43% | 81% | **99.8%** |
+| 50% | 84% | [−0.07, +0.07] · 44% | 87% | ≈100% |
+| 100% | 83% | [−0.13, +0.11] · 39% | 92% | ≈100% |
 
-Reading: **no replacement level produces a Sharpe gain distinguishable from zero** (every ΔSharpe
-CI straddles 0). Drawdown *favours* worse under more replacement but its **95% interval still
-includes zero** (H2a suggestive). **Tail loss (CVaR) is the decisive downside result** — worse
-with ≈95–100% probability from a 20% replacement onward (H2b supported). The return–risk
-*trade-off* is real; a Sharpe *edge* is not established.
+Reading: **return rises but not significantly** — P(ΔCAGR>0) ≈ 80–84%, CI includes zero (H1
+descriptive). **No replacement level produces a Sharpe gain distinguishable from zero** (every
+ΔSharpe CI straddles 0). Drawdown *favours* worse but its 95% CI still includes zero (H2a
+suggestive). **Tail loss (CVaR) is the decisive downside result** — worse with ≈99–100%
+probability from a 20% replacement (robust to the 90% vs 95% CVaR threshold and to bootstrap
+block lengths of 3/6/12 months; H2b strong evidence). The return–risk *trade-off* is real; a
+Sharpe *edge* is not established.
 
 ### 6.4 Crisis behaviour — 2020 vs 2022 (illustrative stress windows)
 
@@ -211,13 +220,15 @@ protected against — it does not remove crisis risk.
 
 ## 7. Robustness — does the conclusion survive? (`analysis/robustness_sensitivity.csv`)
 
-Across the **tested specifications** — rebalancing band (±5/8/10/15/20%), transaction cost
-(0–50 bps), the CHF-hedge assumption (hedged vs unhedged HY/EM), and the 2008–09 short-bond
-splice (full sample vs 2010+) — two facts hold in every case: **partial replacement (20%)
-matches or slightly beats AP5 on Sharpe**, and **full replacement deepens the drawdown**. The
-qualitative conclusion is robust *to the tested variations* (not a proof of robustness to all
-specification uncertainty). Hedging HY/EM does help: unhedged, the full-replacement Sharpe
-falls from ~0.46 to ~0.44.
+Across the **tested specifications** — rebalancing band (±5/8/10/15/20%, base ±8%), transaction
+cost (0–50 bps), the CHF-hedge assumption, and the 2008–09 short-bond **sample-window**
+sensitivity (full sample vs 2010+) — **full replacement deepens drawdown and tail loss in every
+single case**. The weaker *partial-Sharpe-advantage* (repl-20 ≥ AP5) holds across all band,
+cost and splice variations **but disappears in one case: if HY/EM are left unhedged**, partial
+no longer beats AP5 on Sharpe (repl-20 0.457 vs AP5 0.462) — a further reason the **CHF hedge
+assumption matters**. So the robust, unconditional result is "full replacement worsens
+downside"; the partial-Sharpe edge is real but hedge-dependent. (The 2010+ sample also changes
+the period/GFC exposure, so it is a *sample-window* test, not a pure splice test.)
 
 ## 8. Instrument selection — an *ex-post* observation (fig. 08)
 

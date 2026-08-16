@@ -1,7 +1,8 @@
 {
   "meta": {
-    "code_commit": "29bf14f",
-    "generated_utc": "2026-08-16T21:46:16+02:00",
+    "code_commit": "dc384b7",
+    "code_commit_date": "2026-08-16T22:14:13+02:00",
+    "note": "code_commit is HEAD at generation time; results are committed in the immediately following outputs-only commit, so this hash is the code that produced them (deterministic, no wall-clock stamp).",
     "python": "3.11.15",
     "numpy": "2.4.6",
     "pandas": "3.0.5",
@@ -10,7 +11,7 @@
   "window": "2008-01..2026-06",
   "frequency": "monthly",
   "fee_annual": 0.0137,
-  "band_base_rel": 0.2,
+  "band_base_rel": 0.08,
   "tc_bps": 10.0,
   "bond_sleeve_pct": 42.0,
   "validation": {
@@ -24,47 +25,47 @@
     "reg_r2": 0.912
   },
   "AP5": {
-    "CAGR": 0.0343,
-    "Vol": 0.078,
-    "Sharpe": 0.463,
-    "MaxDD": -0.2055
+    "CAGR": 0.034,
+    "Vol": 0.077,
+    "Sharpe": 0.462,
+    "MaxDD": -0.2059
   },
   "repl_100_primary": {
-    "CAGR": 0.043,
-    "Vol": 0.1006,
-    "Sharpe": 0.464,
-    "MaxDD": -0.2768
+    "CAGR": 0.0427,
+    "Vol": 0.1004,
+    "Sharpe": 0.46,
+    "MaxDD": -0.2791
   },
   "curated_100_expost": {
-    "CAGR": 0.0491,
+    "CAGR": 0.049,
     "Sharpe": 0.522,
-    "MaxDD": -0.2748
+    "MaxDD": -0.2737
   },
   "sharpe_by_step": {
-    "AP5": 0.463,
-    "repl_10": 0.474,
-    "repl_20": 0.484,
-    "repl_30": 0.48,
-    "repl_40": 0.479,
-    "repl_50": 0.478,
-    "repl_60": 0.473,
-    "repl_70": 0.471,
-    "repl_80": 0.47,
-    "repl_90": 0.468,
-    "repl_100": 0.464
+    "AP5": 0.462,
+    "repl_10": 0.477,
+    "repl_20": 0.475,
+    "repl_30": 0.477,
+    "repl_40": 0.475,
+    "repl_50": 0.474,
+    "repl_60": 0.472,
+    "repl_70": 0.47,
+    "repl_80": 0.468,
+    "repl_90": 0.465,
+    "repl_100": 0.46
   },
   "sharpe_by_step_rf0": {
-    "AP5": 0.472,
-    "repl_10": 0.481,
-    "repl_20": 0.491,
-    "repl_30": 0.487,
-    "repl_40": 0.486,
-    "repl_50": 0.485,
-    "repl_60": 0.48,
+    "AP5": 0.473,
+    "repl_10": 0.486,
+    "repl_20": 0.484,
+    "repl_30": 0.485,
+    "repl_40": 0.483,
+    "repl_50": 0.482,
+    "repl_60": 0.481,
     "repl_70": 0.478,
-    "repl_80": 0.476,
-    "repl_90": 0.474,
-    "repl_100": 0.47
+    "repl_80": 0.475,
+    "repl_90": 0.472,
+    "repl_100": 0.468
   },
   "bond_redundancy": {
     "corr_swiss_world_bonds": 0.786,

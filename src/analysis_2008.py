@@ -145,17 +145,21 @@ def validate_vs_vz(px):
 
 # ------------------------------------------------------------------ descriptive stats
 def descriptive_stats(px):
+    """Per-asset descriptive stats. Sharpe is EXCESS over the CHF cash proxy — the same
+    risk-free basis as the portfolio tables (audit: no mixed Sharpe definitions)."""
     rets = px.pct_change().dropna(how="all")
+    cash_ret = px["cash"].pct_change()
     rows = {}
     for c in px.columns:
         s = rets[c].dropna()
         lvl = px[c].dropna()
         dd = (lvl / lvl.cummax() - 1).min()
+        ex = (s - cash_ret.reindex(s.index).fillna(0.0)).dropna()
         rows[c] = dict(
             start=lvl.index.min().date(),
             CAGR=(lvl.iloc[-1] / lvl.iloc[0]) ** (PER / (len(lvl) - 1)) - 1,
             Vol=s.std() * np.sqrt(PER),
-            Sharpe=(s.mean() * PER) / (s.std() * np.sqrt(PER)) if s.std() > 0 else np.nan,
+            Sharpe_vs_cash=(ex.mean() * PER) / (ex.std() * np.sqrt(PER)) if ex.std() > 0 else np.nan,
             Skew=s.skew(), ExKurt=s.kurt(), MaxDD=dd)
     return pd.DataFrame(rows).T
 
@@ -380,7 +384,10 @@ def main():
     cur = curated_tbl.loc["curated_100"]
     manifest = {
         "meta": {"code_commit": _git("rev-parse", "--short", "HEAD"),
-                 "generated_utc": _git("log", "-1", "--format=%cI"),
+                 "code_commit_date": _git("log", "-1", "--format=%cI"),
+                 "note": ("code_commit is HEAD at generation time; results are committed in the "
+                          "immediately following outputs-only commit, so this hash is the code "
+                          "that produced them (deterministic, no wall-clock stamp)."),
                  "python": sys.version.split()[0], "numpy": np.__version__,
                  "pandas": pd.__version__, "sharpe_risk_free": "CHF cash proxy (excess return)"},
         "window": "2008-01..2026-06", "frequency": "monthly", "fee_annual": FEE_ANNUAL,
