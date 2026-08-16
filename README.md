@@ -1,80 +1,89 @@
-# Bond Replacement Analysis — VZ AP5 in a low-rate CHF world (2019–2026)
+# Bond Replacement Analysis — VZ AP5 across rate regimes (2008–2026)
 
 Empirical support for the HEC Lausanne MSc Finance thesis
 *"Alternatives aux obligations dans la construction de portefeuille en environnement de
-taux bas."* We replicate the VZ **Anlageprofil 5 (AP5)** mandate from index/ETF proxies
-with **VZ Smart Rebalancing**, then build, optimise and stress-test **bond-replacement**
-portfolios over **01 Jul 2019 → 30 Jun 2026**, in CHF total return.
+taux bas."* We replicate the VZ **Anlageprofil 5 (AP5)** mandate from the **real Bloomberg
+constituent indices** with **VZ Smart Rebalancing**, extend it back to **January 2008**,
+and replace the 40.75% bond sleeve with investable alternatives **over the whole period** —
+read **regime by regime** (SNB). CHF, monthly total return, **net of fees** (0.12% product +
+1.25% management).
+
+> **Reframed brief (Aug 2026, with the thesis director).** Replace bonds over the *whole*
+> sample and analyse by regime — bonds are a problem both when rates are *low* and when they
+> *rise* — which removes the need for a contested low-rate threshold. Earlier 2019–2026
+> daily/Yahoo study is retained under `run_analysis.py` / `walkforward.py` / `montecarlo.py`.
 
 ## TL;DR findings
-- The 42% bond sleeve earned ≈0% real over the period (Swiss bonds +0.3%/yr, world bonds
-  **−1.9%/yr**) — the thesis problem, confirmed in data.
-- **Every** bond-replacement portfolio beat the benchmark on return and Sharpe.
-- The clean win is **diversifying the defensive sleeve** (AAA CLO + ILS + gold): Sharpe
-  0.61 → 0.72, total return +42% → +51%, **same −18% max drawdown** (portfolio `P2` / the
-  min-CVaR optimum `O3`).
-- **2022 is the proof**: when bonds and equities fell together, every replacement book lost
-  less than the benchmark. **2020 is the caveat**: keep a bond core for flight-to-quality.
-- For a CHF investor the **USD→CHF hedge cost ran ~3%/yr** — a first-order, often-ignored
-  drag that reorders the ranking of US-market bond substitutes.
-- **Robust beats optimal**: the in-sample max-Sharpe book overfits; the min-CVaR / static
-  diversified book is the recommendation.
-- **Confirmed out-of-sample & by Monte Carlo**: walk-forward overfitting gap is negligible
-  (0.01–0.07 Sharpe); across 3,000 bootstrap histories the diversified book beats AP5 on
-  Sharpe in **98%** of paths with a smaller drawdown in **82–90%**.
+- **Validated reconstruction**: rebuilt AP5 tracks the *real* VZ VVIA NAV at **0.94
+  correlation / 2.7% tracking error** (2019–2026) — the machinery is trustworthy (fig. 02).
+- **The bond problem is not only low rates.** Bonds delivered their premium **only when
+  rates fell** (R1 2008–14: +4%/yr). In the negative-rate era (R2) the sleeve earned ≈0;
+  when rates *rose* (R3 2022–24) **world bonds lost 2%/yr** on duration (fig. 05).
+- **Replacement pays off conditionally**: it wins in the negative-rate (R2) and easing (R4)
+  regimes, is neutral during hikes (R3), and *costs* return only when bonds rally (R1).
+- **No free lunch over the full cycle**: full replacement lifts CAGR 3.74% → 4.47% but
+  raises drawdown −19% → −27% with **Sharpe flat (0.51 → 0.49)**.
+- **Recommendation: partial (≈33–66%) replacement** — captures the regime upside, keeps a
+  bond core for flight-to-quality, avoids the drawdown penalty of going all-in.
+- **Keep both bond sub-indices** (Swiss vs world corr 0.79, divergent in the hiking regime).
+- Honest note: **commodities and managed futures lost money 2008–2026**; the equal-weight
+  basket carries them, so nothing is cherry-picked.
 
-➡️ Full write-up: **[`reports/thesis_report.md`](reports/thesis_report.md)**
+➡️ Résumé exécutif (FR): **[`reports/resume_executif.md`](reports/resume_executif.md)**
+· Full write-up: **[`reports/thesis_report.md`](reports/thesis_report.md)**
 · Method: **[`docs/methodology.md`](docs/methodology.md)**
 · Thesis structure help: **[`docs/thesis_guidance.md`](docs/thesis_guidance.md)**
 
 ## Repo layout
 ```
-src/                 pipeline (pure Python: pandas/numpy/scipy/matplotlib/requests)
-  config.py          AP5 allocation, bands, proxy map, rate paths, hedging policy
-  download_data.py   Yahoo -> CHF total-return series (data/processed/*.csv)
-  synth_ils.py       transparent synthetic ILS (Swiss Re cat-bond calibrated)
-  engine.py          VZ Smart Rebalancing + calendar/buy-hold + regime switching + metrics
-  portfolios.py      AP5 benchmark + P1–P5 replacement books + rate-regime schedules
-  optimize.py        max-Sharpe / min-var / min-CVaR / risk-parity (Dimson + CVaR aware)
-  run_analysis.py    master pipeline -> analysis/*.csv + reports/figures/01-07*.png
-  walkforward.py     out-of-sample walk-forward (look-ahead-free) -> figures 08-09
-  montecarlo.py      block-bootstrap Monte Carlo distributions -> figures 10-12
-analysis/            output tables (metrics, weights, stress, frontier, ...)
-reports/             thesis_report.md + figures/
-docs/                methodology.md, thesis_guidance.md, source_materials/ (mandate,
-                     PM email, meeting notes, VZ slides, LLM draft, reference article)
-data/                proxy_map.csv, raw/ (per-ticker), processed/ (CHF prices & returns)
+src/
+  data_bloomberg.py     parse VZ/Bloomberg xlsx -> monthly CHF constituents + rates + VZ NAV
+  data_alternatives.py  investable alt proxies (CHF) to 2008 (gold, commodities, HY, EM, ...)
+  build_panel.py        merge constituents + alternatives + SNB cash -> monthly panel
+  engine.py             VZ Smart Rebalancing (±20% bands) + metrics (frequency-agnostic)
+  analysis_2008.py      MAIN: validation, regimes, descriptive stats, replacement steps, figures
+  (legacy 2019-2026 study) download_data.py, run_analysis.py, walkforward.py, montecarlo.py
+data/bloomberg/         real source workbooks (Bloomberg / SNB / VZ)
+data/processed/         monthly CHF panels
+analysis/               output tables (perf, regimes, descriptive stats, weights, validation)
+reports/                thesis_report.md + figures/
+docs/                   methodology.md, thesis_guidance.md, source_materials/
 ```
 
 ## Reproduce
 ```bash
-pip install pandas numpy scipy matplotlib requests
+pip install pandas numpy scipy matplotlib requests openpyxl
 export REQUESTS_CA_BUNDLE=/root/.ccr/ca-bundle.crt SSL_CERT_FILE=$REQUESTS_CA_BUNDLE
-python src/download_data.py     # pull & build data/processed/*.csv
-python src/run_analysis.py      # analysis/*.csv and reports/figures/01-07*.png
-python src/walkforward.py       # out-of-sample walk-forward (figures 08-09)
-python src/montecarlo.py        # block-bootstrap Monte Carlo (figures 10-12)
+python src/data_bloomberg.py      # constituents_chf_monthly, rates_monthly, vz_ap5_track
+python src/data_alternatives.py   # alternatives_chf_monthly
+python src/build_panel.py         # panel_levels_monthly, panel_returns_monthly
+python src/analysis_2008.py       # analysis/*.csv, reports/figures/01-08_*.png
+python src/appendix_optimization.py   # secondary/theoretical optimised sleeve (appendix)
 ```
 
-## Portfolios
-| ID | Name | Idea |
+## Portfolios (2008–2026 study)
+| ID | Book | Bond sleeve replaced |
 |---|---|---|
-| P0 | AP5 benchmark | The mandate, Smart-Rebalanced |
-| P1 | Swiss bonds → CLO | Narrow structural swap |
-| P2 | Swiss bonds → diversified | CLO + ILS + gold (**recommended static**) |
-| P3 | Draft recommended | 7-asset replacement of ~20 pts of the sleeve |
-| P4 | Dynamic — Swiss replace | Replace only during low-rate windows |
-| P5 | Dynamic — broad replace | Replace Swiss + ½ world bonds when rates low |
-| O1/O2/O3 | Optimised | max-Sharpe / min-variance / **min-CVaR** |
+| P0 | AP5 benchmark | 0% (the mandate, Smart-Rebalanced) |
+| P1 | Replace 33% | 33% of the 40.75% sleeve → diversified basket |
+| P2 | Replace 66% | 66% |
+| P3 | Replace 100% | 100% |
+
+Naïve basket = equal weight of the six alternatives with full 2008 history (gold,
+commodities, infrastructure, managed futures, high yield, EM debt). A **curated** basket
+(HY 35 / EM debt 30 / gold 20 / infrastructure 15, dropping the two money-losers) dominates
+it — Sharpe 0.55 vs 0.49 at full replacement, above AP5's 0.51 (fig. 08). A secondary
+in-sample optimisation appendix (`appendix_optimization.py`) shows even the optimiser keeps
+bonds.
 
 ## Important caveats
-Index/ETF **proxies** (not the exact VZ funds); **ILS and pre-2020 CLO are labelled
-synthetic/spliced**; **private credit** uses a listed BDC proxy that shows the *true*
-(un-smoothed) economic risk; single historical path (no resampling yet). See
-`docs/methodology.md` §10. Not investment advice — an academic reproduction.
+Investable ETF/fund **proxies** (not the exact VZ funds); **monthly** frequency understates
+intra-month drawdowns; foreign equity is a USD price index converted to CHF TR (cancels in
+comparisons, validated at 0.94 corr); convertibles start 2009; commodity/CTA proxies carry
+real tracking error; single historical path. Optimisation kept as a secondary/appendix
+exercise per the director. See `docs/methodology.md`. Not investment advice.
 
 ## Source materials
-Everything the analysis is built on is archived under `docs/source_materials/`: the
-mandate + meeting notes, the portfolio manager's email (rebalancing = bandwidths; only
-bonds hedged to CHF), the VZ VVIA/AP5 slides, the LLM first-draft report, and the Nuveen
-2018 reference article.
+Under `docs/source_materials/erta_2026-08/`: the VZ *Kundendoku* Smart-Rebalancing slide,
+the PM's email (rebalancing = bandwidths; only bonds hedged to CHF), and the SNB
+sub-period justification. Raw data workbooks under `data/bloomberg/`.
