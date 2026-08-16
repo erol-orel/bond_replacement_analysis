@@ -29,7 +29,8 @@ read **regime by regime** (SNB). CHF, monthly total return, **net of fees** (0.1
 - Honest note: **commodities and managed futures lost money 2008–2026**; the equal-weight
   basket carries them, so nothing is cherry-picked.
 
-➡️ Full write-up: **[`reports/thesis_report.md`](reports/thesis_report.md)**
+➡️ Résumé exécutif (FR): **[`reports/resume_executif.md`](reports/resume_executif.md)**
+· Full write-up: **[`reports/thesis_report.md`](reports/thesis_report.md)**
 · Method: **[`docs/methodology.md`](docs/methodology.md)**
 · Thesis structure help: **[`docs/thesis_guidance.md`](docs/thesis_guidance.md)**
 
