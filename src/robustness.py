@@ -23,7 +23,8 @@ import matplotlib.pyplot as plt
 
 from engine import backtest, perf_metrics
 from config_main import (AP5, CORE, BOND_SLEEVE, BOND_TOTAL, PRIMARY_W, PER, FEE_ANNUAL,
-                         BAND_BASE, BAND_GRID, TC_BPS, TC_GRID, STEPS, STRESS, step_name)
+                         BAND_BASE, BAND_GRID, TC_BPS, TC_GRID, STEPS, STRESS, step_name,
+                         CATEGORY, START)
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROC = os.path.join(HERE, "data", "processed")
@@ -46,9 +47,10 @@ def replacement_book(frac, basket=PRIMARY_W):
     return {k: v for k, v in book.items() if v > 1e-9}
 
 
-def book_net_returns(px, frac, band=BAND_BASE, tc=TC_BPS, basket=PRIMARY_W):
+def book_net_returns(px, frac, band=BAND_BASE, tc=TC_BPS, basket=PRIMARY_W, group_map=CATEGORY):
     book = AP5 if frac == 0 else replacement_book(frac, basket)
-    bt = backtest(px, book, mode="smart", rel_band=band, monitor_freq="ME", tc_bps=tc)
+    bt = backtest(px, book, mode="smart", rel_band=band, monitor_freq="ME", tc_bps=tc,
+                  group_map=group_map)
     return net_of_fee(bt["value"]).pct_change().dropna()
 
 
@@ -125,15 +127,18 @@ def sensitivity(px):
         m = {}
         for frac, nm in [(0.0, "AP5"), (0.2, "repl_20"), (0.5, "repl_50"), (1.0, "repl_100")]:
             book = AP5 if frac == 0 else replacement_book(frac, basket)
-            bt = backtest(p, book, mode="smart", rel_band=band, monitor_freq="ME", tc_bps=tc)
+            bt = backtest(p, book, mode="smart", rel_band=band, monitor_freq="ME", tc_bps=tc,
+                          group_map=CATEGORY)
             rr = net_of_fee(bt["value"]).pct_change().dropna()
-            c, s, d, *_ = _metrics(rr.values, rf.reindex(rr.index).fillna(0.0).values)
-            m[nm] = (s, d)
+            c, s, d, v95, _ = _metrics(rr.values, rf.reindex(rr.index).fillna(0.0).values)
+            m[nm] = (s, d, v95)
         rows[tag] = dict(
             AP5_Sharpe=m["AP5"][0], repl20_Sharpe=m["repl_20"][0], repl100_Sharpe=m["repl_100"][0],
             AP5_MaxDD=m["AP5"][1], repl100_MaxDD=m["repl_100"][1],
+            AP5_CVaR95=m["AP5"][2], repl100_CVaR95=m["repl_100"][2],
             partial_ge_AP5=m["repl_20"][0] >= m["AP5"][0],
-            full_deeper_DD=m["repl_100"][1] < m["AP5"][1])
+            full_deeper_DD=m["repl_100"][1] < m["AP5"][1],
+            full_worse_CVaR95=m["repl_100"][2] < m["AP5"][2])
 
     for b in BAND_GRID:
         summ(f"band_{int(b*100)}pct", band=b)
@@ -153,12 +158,31 @@ def sensitivity(px):
     return pd.DataFrame(rows).T
 
 
+def granular_vs_category(px):
+    """Audit 4: does the primary specification (VZ category-level bands, the six alternatives
+    monitored as ONE 'alts' sleeve) change the conclusion vs monitoring every index individually
+    (per-constituent bands)? Reports CAGR/Sharpe/MaxDD/n_rebal for AP5, repl_20, repl_100 under
+    both band architectures. Sharpe is excess over the CHF cash proxy."""
+    rf = px["cash"].pct_change().dropna()
+    rows = {}
+    for gm, tag in [(CATEGORY, "category"), (None, "granular")]:
+        for frac, nm in [(0.0, "AP5"), (0.2, "repl_20"), (1.0, "repl_100")]:
+            book = AP5 if frac == 0 else replacement_book(frac)
+            bt = backtest(px, book, mode="smart", rel_band=BAND_BASE, monitor_freq="ME",
+                          tc_bps=TC_BPS, group_map=gm)
+            rr = net_of_fee(bt["value"]).pct_change().dropna()
+            c, s, d, *_ = _metrics(rr.values, rf.reindex(rr.index).fillna(0.0).values)
+            rows[f"{tag}_{nm}"] = dict(CAGR=c, Sharpe=s, MaxDD=d, n_rebal=bt["n_rebal"])
+    return pd.DataFrame(rows).T
+
+
 def stress_table(px):
     rows = {}
     for frac in [0.0, 0.2, 0.5, 1.0]:
         name = step_name(int(frac * 100))
         book = AP5 if frac == 0 else replacement_book(frac)
-        bt = backtest(px, book, mode="smart", rel_band=BAND_BASE, monitor_freq="ME", tc_bps=TC_BPS)
+        bt = backtest(px, book, mode="smart", rel_band=BAND_BASE, monitor_freq="ME",
+                      tc_bps=TC_BPS, group_map=CATEGORY)
         v = net_of_fee(bt["value"])
         rows[name] = {}
         for label, (s, e) in STRESS.items():
@@ -170,8 +194,10 @@ def stress_table(px):
 def main():
     px = pd.read_csv(os.path.join(PROC, "panel_levels_monthly.csv"),
                      index_col=0, parse_dates=True)
+    px = px.loc[px.index >= pd.Timestamp(START)]      # common sample window (audit 4)
     ci = bootstrap_ci(px)
     sens = sensitivity(px)
+    gvc = granular_vs_category(px)
     stress = stress_table(px)
     # block-length sensitivity: does P(worse CVaR95) at 20%/100% survive block = 3/6/12 months?
     blk = {}
@@ -183,6 +209,7 @@ def main():
     blk = pd.DataFrame(blk).T
     ci.to_csv(os.path.join(ANL, "robustness_bootstrap_ci.csv"))
     sens.to_csv(os.path.join(ANL, "robustness_sensitivity.csv"))
+    gvc.to_csv(os.path.join(ANL, "robustness_granular_vs_category.csv"))
     stress.to_csv(os.path.join(ANL, "stress_periods.csv"))
     blk.to_csv(os.path.join(ANL, "robustness_block_length.csv"))
 
@@ -212,7 +239,10 @@ def main():
     print(ci[show].round(3).to_string())
     print("\n=== SENSITIVITY (does the conclusion survive?) ===")
     print(sens[["AP5_Sharpe", "repl20_Sharpe", "repl100_Sharpe", "AP5_MaxDD",
-                "repl100_MaxDD", "partial_ge_AP5", "full_deeper_DD"]].round(3).to_string())
+                "repl100_MaxDD", "AP5_CVaR95", "repl100_CVaR95",
+                "partial_ge_AP5", "full_deeper_DD", "full_worse_CVaR95"]].round(3).to_string())
+    print("\n=== GRANULAR vs CATEGORY BANDS (primary=category; per-constituent = robustness) ===")
+    print(gvc.round(3).to_string())
     print("\n=== BLOCK-LENGTH SENSITIVITY (P worse CVaR95) ===")
     print(blk.round(3).to_string())
     print("\n=== STRESS PERIODS (total return %, net of fees) ===")

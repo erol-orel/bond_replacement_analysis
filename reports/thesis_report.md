@@ -27,7 +27,7 @@ alternative replaces all six. We test:
 Verdict (developed below, from the bootstrap in §6.3):
 - **H1 — descriptive support**: the point estimate of CAGR rises monotonically with
   replacement, but the bootstrap does **not** establish a significant positive return
-  difference (P(ΔCAGR>0) ≈ 80–84%; the 95% CI includes zero at each level).
+  difference (P(ΔCAGR>0) ≈ 82–84%; the 95% CI includes zero at each level).
 - **H2a — suggestive**: the bootstrap consistently favours worse drawdowns (P(worse) rising to
   92% at full replacement), but the 95% interval for ΔMaxDD still **includes zero**, so it is
   not conventionally significant at the 5% level.
@@ -37,9 +37,11 @@ Verdict (developed below, from the bootstrap in §6.3):
   "significant" because no formal one-sided 95% decision rule is pre-registered.
 - **H3 — descriptive support**: the sign of the replacement effect changes across regimes and
   crisis types (a descriptive, not a formally tested, interaction).
-- **H4 — qualified**: partial replacement is the better *compromise*, but the risk-adjusted
-  (Sharpe) differences across low-to-moderate replacement are **within bootstrap noise**, so we
-  do **not** claim a unique optimal ratio. Full replacement is not supported.
+- **H4 — qualified / not supported as a Sharpe claim**: under the primary category-level
+  specification the Sharpe is **flat-to-declining in replacement** (highest at AP5, ≈0.48 through
+  ~50%, then falling), and every ΔSharpe is **within bootstrap noise** — so partial replacement is
+  a defensible return-and-risk *compromise* but is **not** a risk-adjusted improvement and there
+  is **no** unique optimal ratio. Full replacement is not supported.
 
 ## 2. The exact AP5 allocation (VZ Kundendoku slide 5)
 
@@ -105,8 +107,12 @@ We therefore treat it as a **stylised benchmark**, not an exact replica.
 
 We define an **investable proxy** as a publicly traded market instrument with an observable
 total-return history; this does **not** imply universal availability to a Swiss retail investor
-(US ETFs such as HYG/EMB require authorisation to be offered to non-qualified Swiss investors,
-though CHF-hedged UCITS equivalents exist). "Market-investable" ≠ "Swiss-retail accessible" —
+(US ETFs such as HYG/EMB require authorisation to be offered to non-qualified Swiss investors).
+For EM debt a CHF-hedged UCITS vehicle is directly available (e.g. iShares J.P. Morgan $ EM Bond
+CHF-Hedged UCITS ETF, *EMBC*); for US high yield the CHF-hedged UCITS listing is less
+standardised, so Swiss implementation of the HY leg requires an appropriate local/UCITS vehicle
+(e.g. a CHF-hedged global-HY UCITS) rather than a like-for-like HYG hedge share.
+"Market-investable" ≠ "Swiss-retail accessible" —
 the thesis measures the former; a Swiss investor would implement via the appropriate local
 vehicle. Included candidates, classified by *which function of bonds* they proxy:
 
@@ -114,8 +120,8 @@ Sharpe below is **excess over the CHF cash proxy** (same basis as the portfolio 
 
 | Instrument (US proxy) | Function proxied | Swiss-retail accessible? | CAGR | Vol | Sharpe (vs cash) | MaxDD |
 |---|---|---|---|---|---|---|
-| High yield (HYG, hedged) | income/carry | via CHF-hedged UCITS | 3.7% | 10.3% | 0.40 | −29% |
-| EM debt (EMB, hedged) | income/carry | via CHF-hedged UCITS | 3.3% | 11.5% | 0.33 | −28% |
+| High yield (HYG, hedged) | income/carry | via CHF-hedged global-HY UCITS | 3.7% | 10.3% | 0.40 | −29% |
+| EM debt (EMB, hedged) | income/carry | via CHF-hedged UCITS (EMBC) | 3.3% | 11.5% | 0.33 | −28% |
 | Gold (GLD) | crisis diversifier / store of value | via Swiss gold ETF | 6.2% | 16.3% | 0.44 | −38% |
 | Managed futures (RYMFX) | crisis diversifier | limited / qualified | **−0.7%** | 13.8% | 0.01 | −47% |
 | Commodities (DBC) | inflation hedge | via UCITS | **−1.6%** | 18.9% | 0.00 | −76% |
@@ -127,8 +133,9 @@ basket is a *bond-sleeve* replacement (replacing what the sleeve mostly *does* �
 diversification, some inflation and crisis hedging), **not** a bond *substitute* that
 reproduces duration and flight-to-quality. **Inclusion rule (ex ante):** liquid + market-
 investable + mark-to-market + sufficient history. **Primary basket** = equal weight of the six
-that satisfy this rule with full 2008 history; convertibles are a candidate class analysed
-separately (no consistent pre-2009 history).
+with histories beginning in 2008 that satisfy this rule (EM debt begins 2008-02, which fixes the
+common sample window for every book at 2008-02 – 2026-06); convertibles are a candidate class
+analysed separately (no consistent pre-2009 history).
 
 **Excluded, with reasons** (all fail the *investable / liquid / net-of-fee* bar): **ILS/cat
 bonds** (no clean public total-return history; semi-liquid); **private equity/credit**
@@ -144,14 +151,25 @@ Annualised return of each bond tranche per SNB regime:
 
 | SNB regime | Swiss broad | Swiss 1-5 | World broad | World 1-5 | Cash |
 |---|---|---|---|---|---|
-| R1 2008–14 low positive | +4.0% | +2.5% | +4.1% | +2.5% | +0.5% |
-| R2 2015–22 negative | −0.8% | −0.4% | −0.6% | −0.7% | −0.8% |
-| R3 2022–24 hikes | +2.9% | +1.5% | **−2.0%** | −0.8% | +1.2% |
-| R4 2024–26 easing | +2.4% | +1.9% | −0.3% | +0.5% | +0.5% |
+| R1 2008–14 low positive | +4.1% | +2.6% | +4.1% | +2.5% | +0.5% |
+| R2 2015–22 negative | −0.5% | −0.4% | −0.4% | −0.7% | −0.7% |
+| R3 2022–24 hikes | +1.6% | +0.9% | **−2.9%** | −1.2% | +1.0% |
+| R4 2024–26 easing | +2.7% | +2.0% | −0.0% | +0.6% | +0.5% |
+
+> **Global-rate context (secondary).** The four regimes are classified on the **SNB policy path**
+> — the correct primary lens for a CHF-based Swiss investor with a Swiss local-bond allocation and
+> a CHF cash benchmark. Because the World-Bond sleeve is 25.2% of AP5 and internationally exposed,
+> we report the **Fed policy rate** at each regime's boundaries as secondary context (not a
+> reclassification): R1 SNB +2.75%→−0.25% / Fed 3.00%→0.12%; R2 SNB −0.75% flat / Fed 0.12%→0.88%;
+> R3 SNB −0.25%→+1.75% / Fed 1.62%→5.38%; R4 SNB +1.50%→0.00% / Fed 5.38%→3.62%. SNB and Fed cycles
+> broadly co-move but with different timing and amplitude — which is precisely why the world-bond
+> tranche (Global Aggregate) behaves differently from the Swiss tranche within the same SNB regime.
 
 Bond performance was **strongest in the low-positive-rate regime (R1) and weakest in the
-negative-rate (R2) and tightening (R3) regimes**. The broad-vs-short contrast in R3 (−2.0% vs
-−0.8%) is **consistent with duration exposure being an important transmission channel**
+negative-rate (R2) and tightening (R3) regimes**. In the 2022–24 tightening the **broad global
+bond tranche was hit hardest (−2.9%/yr) while Swiss bonds stayed positive (+1.6%/yr)**, and within
+the global tranche the short-duration series lost far less than the broad one (−1.2% vs −2.9%) —
+a pattern **consistent with duration exposure being an important transmission channel**
 (a formal rate-beta decomposition is left as an extension). Swiss and world bonds are **not
 redundant**, but the case rests on more than correlation: full-sample correlation 0.79
 (R² ≈ 0.62, so ~38% of Swiss-bond variance is idiosyncratic; OLS beta 0.81), *and* their
@@ -167,13 +185,18 @@ Full period, net of fees (0–100% of the sleeve replaced by the primary basket)
 
 | Book | CAGR | Vol | Sharpe (vs cash) | MaxDD | CVaR₉₅ |
 |---|---|---|---|---|---|
-| AP5 (0%) | 3.40% | 7.7% | 0.46 | −20.6% | −5.1% |
-| Replace 20% | 3.65% | 8.1% | 0.48 | −21.8% | −5.6% |
-| Replace 50% | 3.91% | 8.8% | 0.47 | −24.1% | −6.1% |
-| Replace 100% | 4.27% | 10.0% | 0.46 | −27.9% | −7.1% |
+| AP5 (0%) | 3.55% | 7.7% | 0.48 | −20.4% | −5.2% |
+| Replace 20% | 3.71% | 8.1% | 0.48 | −21.9% | −5.6% |
+| Replace 50% | 3.95% | 8.8% | 0.48 | −24.1% | −6.1% |
+| Replace 100% | 4.28% | 10.0% | 0.46 | −28.0% | −7.1% |
 
-**More replacement → higher return, higher volatility, deeper drawdown and tail loss, roughly
-unchanged Sharpe.** That clean monotonic trade-off is the central finding.
+**More replacement → higher return, higher volatility, deeper drawdown and tail loss, with Sharpe
+roughly flat (~0.48) up to ~50% and then declining to ~0.46 at full replacement.** That clean
+monotonic risk–return trade-off is the central finding. Under this (primary) category-level
+specification the point-estimate Sharpe is **highest at AP5 / low replacement and never rises
+above it** — i.e. there is **no partial-replacement Sharpe peak**; low-to-moderate replacement is
+approximately *Sharpe-neutral* while adding return-and-risk, and full replacement is weakly worse
+on Sharpe and clearly worse on downside.
 
 ### 6.3 Statistical uncertainty — bootstrap (fig. 09)
 
@@ -184,17 +207,18 @@ vs AP5:
 
 | Replacement | P(ΔCAGR>0) | ΔSharpe [5%, 95%] · P(>0) | P(worse MaxDD) | P(worse CVaR95) |
 |---|---|---|---|---|
-| 20% | 80% | [−0.03, +0.03] · 43% | 81% | **99.8%** |
-| 50% | 84% | [−0.07, +0.07] · 44% | 87% | ≈100% |
-| 100% | 83% | [−0.13, +0.11] · 39% | 92% | ≈100% |
+| 20% | 84% | [−0.03, +0.03] · 45% | 83% | **99.8%** |
+| 50% | 84% | [−0.07, +0.07] · 42% | 87% | ≈100% |
+| 100% | 82% | [−0.14, +0.11] · 36% | 92% | ≈100% |
 
-Reading: **return rises but not significantly** — P(ΔCAGR>0) ≈ 80–84%, CI includes zero (H1
+Reading: **return rises but not significantly** — P(ΔCAGR>0) ≈ 82–84%, CI includes zero (H1
 descriptive). **No replacement level produces a Sharpe gain distinguishable from zero** (every
-ΔSharpe CI straddles 0). Drawdown *favours* worse but its 95% CI still includes zero (H2a
-suggestive). **Tail loss (CVaR) is the decisive downside result** — worse with ≈99–100%
-probability from a 20% replacement (robust to the 90% vs 95% CVaR threshold and to bootstrap
-block lengths of 3/6/12 months; H2b strong evidence). The return–risk *trade-off* is real; a
-Sharpe *edge* is not established.
+ΔSharpe CI straddles 0, and P(ΔSharpe>0) is ≤ 45% throughout — the point estimate slightly
+*favours AP5*). Drawdown *favours* worse but its 95% CI still includes zero (H2a suggestive).
+**Tail loss (CVaR) is the decisive downside result** — worse with ≈99–100% probability from a 20%
+replacement (robust to the 90% vs 95% CVaR threshold and to bootstrap block lengths of 3/6/12
+months; H2b strong evidence). The return–risk *trade-off* is real; a Sharpe *edge* is not
+established.
 
 ### 6.4 Crisis behaviour — 2020 vs 2022 (illustrative stress windows)
 
@@ -203,9 +227,9 @@ to examine distinct shock types**, not formal out-of-sample stress tests:
 
 | Stress window | AP5 | 20% | 50% | 100% |
 |---|---|---|---|---|
-| COVID crash 2020 (Jan–Apr) | **−6.9%** | −6.9% | −8.2% | −10.4% |
-| Rate shock 2022 (Dec21–Oct22) | −11.9% | −10.8% | −9.2% | **−6.6%** |
-| SVB stress 2023 (Feb–May) | +0.1% | −0.2% | −0.7% | −1.4% |
+| COVID crash 2020 (Jan–Apr) | **−6.1%** | −6.9% | −8.2% | −10.3% |
+| Rate shock 2022 (Dec21–Oct22) | −11.7% | −10.6% | −9.0% | **−6.1%** |
+| SVB stress 2023 (Feb–May) | +0.0% | −0.3% | −0.7% | −1.4% |
 
 The two crises point opposite ways: in the **deflationary flight-to-quality shock (2020)**
 bonds protected and replacement hurt; in the **inflationary rate shock (2022)** bonds and
@@ -216,19 +240,32 @@ protected against — it does not remove crisis risk.
 > where a Sharpe of ~1.4 should not be over-interpreted) materially influence the level and
 > Sharpe estimates. Excluding 2008–09 (the 2010+ run) lifts all Sharpes to ~0.58–0.61 — so the
 > *level* of the statistics is not independent of the GFC sample, even though the *qualitative*
-> conclusion (partial preferred; full deepens downside) is unchanged.
+> conclusion (Sharpe flat-to-declining in replacement; full replacement deepens downside) is
+> unchanged.
 
 ## 7. Robustness — does the conclusion survive? (`analysis/robustness_sensitivity.csv`)
 
 Across the **tested specifications** — rebalancing band (±5/8/10/15/20%, base ±8%), transaction
 cost (0–50 bps), the CHF-hedge assumption, and the 2008–09 short-bond **sample-window**
-sensitivity (full sample vs 2010+) — **full replacement deepens drawdown and tail loss in every
-single case**. The weaker *partial-Sharpe-advantage* (repl-20 ≥ AP5) holds across all band,
-cost and splice variations **but disappears in one case: if HY/EM are left unhedged**, partial
-no longer beats AP5 on Sharpe (repl-20 0.457 vs AP5 0.462) — a further reason the **CHF hedge
-assumption matters**. So the robust, unconditional result is "full replacement worsens
-downside"; the partial-Sharpe edge is real but hedge-dependent. (The 2010+ sample also changes
-the period/GFC exposure, so it is a *sample-window* test, not a pure splice test.)
+sensitivity (full sample vs 2010+) — **full replacement deepens drawdown in every single tested
+specification, and worsens CVaR95 in every one as well** (the sensitivity matrix now reports
+`AP5_CVaR95`, `repl100_CVaR95` and `full_worse_CVaR95` alongside drawdown, and the bootstrap
+confirms the same tail-loss deterioration with ≈100% probability). Under the primary
+category-level specification **partial replacement is essentially Sharpe-neutral, not
+Sharpe-superior**: at the base ±8% band, repl-20 Sharpe 0.482 is a hair *below* AP5 0.483, and
+across the band/cost grid partial replacement is at best tied with AP5 (it edges marginally ahead
+only at the widest ±15% band and in the 2010+ sub-sample). Leaving HY/EM **unhedged** widens the
+gap the other way (repl-20 0.476 vs AP5 0.483; repl-100 0.442 vs 0.461). So the robust,
+unconditional result is unchanged and if anything sharper: **full replacement clearly worsens
+downside and does not improve Sharpe; partial replacement buys extra return-and-risk at roughly
+constant Sharpe.** There is **no** specification in which replacement delivers a *reliable*
+risk-adjusted advantage. (The 2010+ sample also changes the period/GFC exposure, so it is a
+*sample-window* test, not a pure splice test.)
+
+The conclusion is also **robust to the band architecture itself**: monitoring every constituent
+with its own ±8% band (`analysis/robustness_granular_vs_category.csv`) rebalances far more often
+(≈61–96 vs ≈36–37 triggers) but leaves CAGR/Sharpe/MaxDD essentially identical, confirming the
+category-level primary specification is not doing the work.
 
 ## 8. Instrument selection — an *ex-post* observation (fig. 08)
 
@@ -236,8 +273,8 @@ A **curated** basket (HY 35 / EM 30 / gold 20 / infra 15) that drops the two mon
 lifts the full-replacement Sharpe to ~0.52. **This is an ex-post, exploratory result** — the
 weights were chosen after seeing full-sample outcomes, so it is *not* evidence that such a
 basket would have been chosen prospectively, and it does **not** drive the recommendation. It
-shows only that **instrument selection matters as much as the replacement fraction** — a
-motivation for out-of-sample basket selection as future work.
+shows only that **instrument selection materially affects the results, in addition to the
+replacement fraction** — a motivation for out-of-sample basket selection as future work.
 
 ## 9. Recommendation and economic interpretation
 
@@ -248,15 +285,27 @@ which is exactly why replacement raises return while worsening tail loss and 202
 protection.
 
 **Practical recommendation.**
-- **Favour partial over wholesale replacement.** The point estimate of Sharpe peaks around a
-  **20%** replacement, but the study does **not statistically distinguish 20%, 30% and 40%** —
-  so a low-to-moderate replacement is the most attractive historical *compromise*, not a unique
-  optimum.
+- **Favour partial over wholesale replacement.** Under the category-level specification the Sharpe
+  is essentially **flat (~0.48) from AP5 through ~50% replacement** and then declines — there is
+  **no partial-replacement Sharpe peak** and no level statistically distinguishable from AP5 on
+  risk-adjusted return. Low-to-moderate replacement is therefore a defensible *compromise* that
+  adds return-and-risk at roughly constant Sharpe, **not** a risk-adjusted improvement and **not**
+  a unique optimum. If the goal is unchanged risk-adjusted performance with more return (and the
+  investor accepts the deeper tail loss), a low replacement fraction is the honest sweet spot;
+  if the goal is to *improve* Sharpe, the evidence supports **no replacement**.
 - **Full replacement is not supported by the evidence**: it materially increases tail loss
   (CVaR worse with ≈100% bootstrap probability) and deepens drawdown, without delivering a
   reliable improvement in risk-adjusted performance, and it removes 2020-type protection.
 - **Keep the sleeve's structure** (Swiss + world, broad + short-duration).
 - Instrument selection matters (§8), but should be validated out-of-sample before use.
+
+**Framing.** The monotone chain the data show — *more replacement → more return → more volatility
+→ more tail loss, with no reliable Sharpe gain* — is not the signature of discovering a superior
+defensive asset class; it is the signature of **spending more of the portfolio's risk budget**.
+Bond replacement should therefore be interpreted as a **strategic reallocation of defensive risk
+rather than as a search for a one-for-one bond substitute**: the decision is how much crash- and
+duration-protection the investor is willing to trade for carry and inflation exposure, not
+whether some alternative "beats" bonds outright.
 
 ## Appendix A. Optimisation (secondary, in-sample, not independent)
 

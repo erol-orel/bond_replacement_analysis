@@ -21,21 +21,29 @@ monthly total return, **net of fees** (0.12% product + 1.25% management).
   **corr 0.955**, regression **β 0.97 / α −0.35%/yr / R² 0.91**, TE 2.35% (fig. 02) — a
   stylised benchmark, not an exact replica.
 - **Bonds are a problem in more than low rates.** Strongest in the low-positive regime
-  (R1 2008–14: +4%/yr); ≈0 in the negative-rate era (R2); broad world bonds **−2%/yr** in the
-  2022–24 hikes (R3) vs only −0.8% for the short (1-5) tranche — consistent with duration being
-  an important channel (fig. 05).
+  (R1 2008–14: +4%/yr); slightly negative in the negative-rate era (R2); broad **world** bonds
+  **−2.9%/yr** in the 2022–24 hikes (R3) while **Swiss** bonds stayed positive (+1.6%), and the
+  short (1-5) world tranche lost only −1.2% — consistent with duration being an important channel
+  (fig. 05).
 - **Trade-off curve is the core result**: more replacement → higher return, higher vol, deeper
-  drawdown, **roughly unchanged Sharpe** (CAGR 3.40%→4.27%, MaxDD −20.6%→−27.9%, Sharpe ≈0.46–0.48, excess over CHF cash).
+  drawdown, **Sharpe roughly flat (~0.48) up to ~50% then declining to ~0.46** (CAGR 3.55%→4.28%,
+  MaxDD −20.4%→−28.0%, excess over CHF cash). Under the primary category-level spec the Sharpe
+  point estimate is **highest at AP5 and never rises above it — no partial-replacement peak**.
 - **Statistics (bootstrap, fig. 09)**: **no** replacement level gives a Sharpe gain
-  distinguishable from zero (ΔSharpe CIs straddle 0). Drawdown *favours* worse but its 95% CI
-  still includes zero (**H2a suggestive**); **tail loss (CVaR) is worse with ≈99–100%
-  probability** from a 20% replacement (both CVaR90/95, all block lengths; **H2b strong evidence**).
-- **Crisis-type dependent**: replacement *hurt* in the 2020 deflation shock (−10.4% vs AP5
-  −6.9%) but *helped* in the 2022 rate shock (−6.6% vs −11.9%).
-- **Recommendation**: favour **partial over wholesale** replacement — the Sharpe point estimate
-  peaks around **20%**, but 20/30/40% are **not statistically distinguishable**. Full
-  replacement is not supported (reliably worse tail loss, no reliable Sharpe gain).
-- **Full replacement worsens downside in every tested spec**; the partial-Sharpe edge holds except if HY/EM are left unhedged (`robustness.py`).
+  distinguishable from zero (ΔSharpe CIs straddle 0; P(ΔSharpe>0) ≤ 45%, slightly favouring AP5).
+  Drawdown *favours* worse but its 95% CI still includes zero (**H2a suggestive**); **tail loss
+  (CVaR) is worse with ≈99–100% probability** from a 20% replacement (both CVaR90/95, all block
+  lengths; **H2b strong evidence**).
+- **Crisis-type dependent**: replacement *hurt* in the 2020 deflation shock (−10.3% vs AP5
+  −6.1%) but *helped* in the 2022 rate shock (−6.1% vs −11.7%).
+- **Recommendation**: favour **partial over wholesale** replacement — but note the Sharpe is flat
+  in replacement and **no level improves risk-adjusted return over AP5**, so partial replacement
+  is a return-and-risk *compromise*, not a Sharpe optimum. Full replacement is not supported
+  (reliably worse tail loss, no Sharpe gain).
+- **Full replacement worsens drawdown and CVaR95 in every tested spec**; partial replacement is at
+  best Sharpe-neutral (it never reliably beats AP5, and falls further behind if HY/EM are left
+  unhedged). The conclusion is also **robust to the band architecture** — per-constituent vs
+  category-level bands give near-identical CAGR/Sharpe/MaxDD (`robustness.py`).
 - **You replace *parts of what bonds do*** (carry, some diversification/inflation), **not**
   duration or flight-to-quality — which is why full replacement worsens tail risk.
 - **Instrument selection matters** — an *ex-post* curated basket does better (Sharpe ≈0.52),

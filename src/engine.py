@@ -35,6 +35,7 @@ def backtest(prices: pd.DataFrame,
              monitor_freq: str = "ME",      # monitoring cadence
              tc_bps: float = 10.0,          # one-way transaction cost, bps of turnover
              target_schedule: list | None = None,  # [(Timestamp, target_dict), ...]
+             group_map: dict | None = None,   # asset -> category; bands monitored per category
              start: str | None = None,
              end: str | None = None) -> dict:
     """Run a backtest. Returns dict with 'value', 'weights', 'trades', 'turnover'.
@@ -42,6 +43,11 @@ def backtest(prices: pd.DataFrame,
     If target_schedule is given (list of (date, target_dict)), the active target is the
     most recent scheduled target; a target change forces a rebalance (regime switching).
     All target_dicts must share the same universe as `target`.
+
+    If `group_map` (asset -> category) is given, the ±band is monitored at the CATEGORY level
+    (sum of constituent weights per category), matching VZ's category-level Smart Rebalancing;
+    a triggered rebalance restores the whole book to target (so within-category strategic
+    splits are also restored). Without it, bands are monitored per individual asset.
     """
     cols = list(target.keys())
     px = prices[cols].copy()
@@ -63,10 +69,13 @@ def backtest(prices: pd.DataFrame,
         sched = sorted(((pd.Timestamp(d), _vec(t)) for d, t in target_schedule),
                        key=lambda x: x[0])
 
+    w_tgt = _vec(target)
+
     def target_on(day, w_prev):
+        # before the first scheduled date, use the passed `target` (not a future schedule entry)
         if not sched:
             return w_prev
-        cur = sched[0][1]
+        cur = w_tgt
         for d, v in sched:
             if d <= day:
                 cur = v
@@ -74,8 +83,21 @@ def backtest(prices: pd.DataFrame,
                 break
         return cur
 
-    w_tgt = _vec(target)
-    lo, hi = w_tgt * (1 - rel_band), w_tgt * (1 + rel_band)
+    # category grouping for band monitoring (VZ monitors at the category level)
+    if group_map is not None:
+        cats = sorted(set(group_map.get(c, c) for c in cols))
+        G = np.array([[1.0 if group_map.get(c, c) == g else 0.0 for c in cols] for g in cats])
+    else:
+        G = None
+
+    def _breach(w, tgt):
+        if G is None:
+            lo, hi = tgt * (1 - rel_band), tgt * (1 + rel_band)
+            return np.any(w < lo - 1e-12) or np.any(w > hi + 1e-12)
+        wc, tc = G @ w, G @ tgt
+        active = tc > 1e-9
+        lo, hi = tc * (1 - rel_band), tc * (1 + rel_band)
+        return np.any(wc[active] < lo[active] - 1e-12) or np.any(wc[active] > hi[active] + 1e-12)
 
     if mode == "calendar":
         mdates = set(_monitor_dates(idx, monitor_freq))
@@ -85,8 +107,8 @@ def backtest(prices: pd.DataFrame,
         mdates = set()
 
     value = 1.0
-    cur_tgt = sched[0][1].copy() if sched else w_tgt.copy()
-    w = cur_tgt.copy()                      # start at (initial) target
+    cur_tgt = w_tgt.copy()                  # start at the passed target (schedule applies later)
+    w = cur_tgt.copy()
     vals, whist, trades = [], [], []
     turnover_total = 0.0
 
@@ -102,15 +124,13 @@ def backtest(prices: pd.DataFrame,
         regime_change = not np.allclose(new_tgt, cur_tgt)
         if regime_change:
             cur_tgt = new_tgt
-            lo, hi = cur_tgt * (1 - rel_band), cur_tgt * (1 + rel_band)
 
         do_rebal = regime_change
         if day in mdates:
             if mode == "calendar":
                 do_rebal = True
-            elif mode == "smart":
-                if np.any(w < lo - 1e-12) or np.any(w > hi + 1e-12):
-                    do_rebal = True
+            elif mode == "smart" and _breach(w, cur_tgt):
+                do_rebal = True
 
         if do_rebal:
             turnover = np.abs(cur_tgt - w).sum() / 2.0   # one-way turnover fraction
@@ -167,7 +187,7 @@ def perf_metrics(value: pd.Series, rf_annual: float = 0.0,
     cvar95 = r[r <= var95].mean()
     var99 = np.percentile(r, 1)
     cvar99 = r[r <= var99].mean()
-    # longest drawdown duration (in trading days)
+    # longest drawdown duration in observations/periods (monthly in the thesis)
     underwater = (dd < 0).astype(int)
     dur, mx = 0, 0
     for u in underwater:

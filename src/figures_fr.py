@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 
 from analysis_2008 import (run_books, validate_vs_vz, regime_metrics,
                            bond_sleeve_by_regime, run_curated, REGIMES, PROC)
+from config_main import START
 
 FIGFR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                      "reports", "figures_fr")
@@ -37,6 +38,7 @@ def save(fig, name):
 def main():
     px = pd.read_csv(os.path.join(PROC, "panel_levels_monthly.csv"),
                      index_col=0, parse_dates=True)
+    px = px.loc[px.index >= pd.Timestamp(START)]      # common sample window (audit 4)
     _, _, net, _ = run_books(px)
     r, v, _ = validate_vs_vz(px)
     reg_tables = regime_metrics(net)
