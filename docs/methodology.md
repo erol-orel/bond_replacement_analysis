@@ -64,38 +64,55 @@ tactically; that drift is used only to tighten the validation (Step 9).
 - World bonds use the **CHF-hedged** Global Aggregate series (from `CHF hedged data.xlsx`).
 - Foreign equity indices (MSCI World / Small / EM) are Bloomberg **price** indices in **USD**.
   They are converted to a CHF total-return proxy: `level × USD/CHF` (spot, Yahoo `CHF=X`)
-  grossed up by a constant net dividend yield (World/Small 2.1%, EM 2.6%). Because the
-  equity/RE/cash **core is identical in every portfolio we compare**, this proxy **cancels
-  exactly** in all AP5-vs-replacement contrasts; it only affects the validation, where it
-  performs well (Step 9).
+  grossed up by a **fixed ex-ante** net dividend yield (World/Small 2.1%, EM 2.6% — the long-run
+  MSCI net yields, **not tuned to the VZ validation**). The equity/RE/cash **core is common to
+  every compared portfolio**, so this proxy's direct level bias is shared across strategies;
+  however, under band rebalancing it affects breach timing/turnover/cost, so it does **not
+  cancel mechanically** — the effect on the AP5-vs-replacement contrast is second-order.
 
-## Step 3 — The CHF cash index (`build_panel.py`)
+## Step 3 — The CHF cash proxy (`build_panel.py`)
 
-Cash is built from the **SNB policy-rate path**: monthly accrual = `snb/12`, compounded. This
-means cash **goes negative over 2015–2022** (the −0.75% era) — essential to the thesis, and
-something a naïve "cash = 0%" assumption would miss.
+Cash is a **policy-rate cash proxy**: the SNB policy-rate path accrued monthly (`snb/12`),
+assuming full and immediate pass-through to cash remuneration. Its *return* is negative over
+2015–2022 (the −0.75% era — essential to the thesis); the wealth index itself does not go
+negative. A SARON-based proxy would be a natural refinement.
 
 The short world-bond index (Global Aggregate 1-5, hedged) begins only in 2010; its broad
-counterpart's returns are **spliced backward** as a proxy for 2008–2009 (documented in code).
+counterpart's returns are **spliced backward** as a proxy for 2008–2009. This makes the short
+and broad world-bond series identical in those two GFC years — a strong assumption in a key
+stress window, so `robustness.py` re-runs the study from 2010 (no splice) and confirms the
+conclusion is unchanged.
 
-## Step 4 — Currency treatment (PM email)
+## Step 4 — Currency treatment
 
-The VZ PM confirmed: **only the global bond sleeve is hedged to CHF**; equities are unhedged.
-We follow this exactly — world bonds and the two credit-like replacements (high yield, EM debt)
-are CHF-hedged; equities, real assets and gold keep their FX exposure (Step 7).
+The VZ PM confirmed VZ hedges **only its own global bond sleeve** to CHF; equities are
+unhedged. We follow this for the AP5 core. Extending the hedge to the **credit-like
+replacements** (HY, EM debt) is **our modelling assumption**, not a VZ statement. The hedge is
+a **policy-rate-implied approximation**: `r_CHF-hedged ≈ r_USD-local + (r_CHF − r_USD)/12`
+(SNB/Fed paths), which ignores forward points, cross-currency basis and roll cost — so it is
+*not* an actual hedged-product return. `robustness.py` re-runs with HY/EM **unhedged** to show
+the hedge assumption's impact (it lowers the full-replacement Sharpe from 0.47 to 0.44).
 
 ## Step 5 — Fees
 
-A constant **1.37%/yr** load — **0.12% product + 1.25% management** (agreed with the director)
-— is applied as a monthly drag to **every** portfolio. Applying it equally to AP5 and to all
-replacement books means it does not distort the comparison, while making the reconstruction
-directly comparable to the **net** VZ NAV.
+The fee stack is explicit: (1) the instruments' **own fund-level expenses** are already in
+their total returns; (2) on top, a **VZ wrapper/management load of 1.37%/yr** (0.12% product +
+1.25% management, agreed with the director) is applied to **every** book as an **exact
+multiplicative** monthly drag, `net = gross × 1/(1+m)` with `(1+m)^12 = 1.0137`; (3)
+transaction costs (Step 6) and (4) the FX-hedge cost (Step 4) are separate. Applying the
+wrapper equally to AP5 and replacements keeps the comparison clean and matches the **net** VZ
+NAV used in validation.
 
 ## Step 6 — Rebalancing (`engine.py`)
 
-VZ **Smart Rebalancing**: predefined **±20% relative bands**, monitored monthly. The whole book
-snaps back to target only when a sleeve leaves its band (confirmed by slide 5–6 and the PM
-email). 10 bps one-way transaction cost on traded turnover. The engine is frequency-agnostic;
+The mandate uses **band-based monitoring** (not calendar rebalancing) — an observed fact from
+the VZ *Kundendoku* and PM email. The **documented example** is the 50%-equity case with soft
+bounds 48–52% and hard bounds 46–54%, i.e. **≈±8% relative** hard bands around target. VZ does
+**not** publish the general formula for other target weights, so the band width used to
+generalise the example is a **reconstruction assumption**, not "the VZ rule". We take **±20%
+relative** as the base case and show in `robustness.py` that the conclusion is unchanged across
+**±5 / 8 / 10 / 15 / 20%**. When a sleeve leaves its band the whole book snaps to target;
+10 bps one-way transaction cost (0–50 bps sensitivity). The engine is frequency-agnostic;
 monthly metrics annualise with `periods = 12`.
 
 ## Step 7 — The replacement candidates (`data_alternatives.py`)
@@ -145,35 +162,56 @@ windows: **R1 2008–14** (low positive), **R2 2015–22** (negative, −0.75%),
 bond tranches are shown per regime, so the **duration effect** is explicit (short world bonds
 lost far less than broad in the 2022–24 hikes).
 
-## Step 9 — Replacement design & validation
+## Step 9 — Replacement design, validation & robustness
 
-- **Steps:** move **0, 10, 20, …, 100%** of the 42% bond sleeve into the basket; the
-  equity/RE/cash core stays fixed. Reported net of fees, per regime and full-period.
-- **Validation:** reconstruct AP5 (Smart Rebalancing, net of fees) using VZ's real category
-  drift mapped onto the granular sub-indices, and compare to the real VZ VVIA NAV over
-  2019–2026: **corr 0.955, tracking error 2.35%/yr**, mean absolute monthly gap 0.5%. The
-  residual tracking error is intrinsic to using public index series + a USD-price equity proxy
-  rather than VZ's exact CHF-share-class funds, and it cancels in all comparisons.
-- **Optimisation** is kept as a **secondary appendix** (`appendix_optimization.py`, in-sample,
-  monthly) at the director's request.
+- **Steps:** move **0, 10, 20, …, 100%** of the 42% bond sleeve into the primary
+  (pre-specified equal-weight) basket; the equity/RE/cash core stays fixed. Net of fees.
+- **Validation (stylised benchmark, not exact replica):** reconstruct AP5 using VZ's real
+  *recorded target-allocation* path (category level, mapped onto the granular sub-indices) as
+  a target schedule — because VZ trade dates are unavailable, a change in the recorded target
+  is interpreted as a rebalance event. Compared to the real VZ VVIA NAV, 2019–2026:
+  **corr 0.955**, regression **β 0.97 / α −0.35%/yr / R² 0.91**, tracking error 2.35%/yr,
+  cumulative gap +25.1% vs +21.1%. We treat it as a stylised benchmark, not an exact trading
+  reconstruction.
+- **Robustness (`robustness.py`):** (i) paired **block-bootstrap CIs** for ΔCAGR/ΔSharpe/ΔMaxDD
+  vs AP5 — Sharpe differences straddle zero, drawdown reliably worsens (P up to 91%);
+  (ii) **sensitivity matrix** over band, cost, hedge and splice — the qualitative conclusion
+  survives all; (iii) **stress table** (2020/2022/2023).
+- **Optimisation** is a **secondary appendix** (`appendix_optimization.py`, in-sample; *not*
+  independent evidence — same sample/proxies/construction).
+- **Config & tests:** all assumptions live in `src/config_main.py` (single source of truth);
+  `tests/test_engine.py` checks weights-sum-to-1, band-rebalance logic, exact fees, turnover
+  cost, and that a shared equity-core shock cannot manufacture an edge. Canonical headline
+  numbers are written to `analysis/results_manifest.json`, which the reports cite.
 
 ## Step 10 — Reproduce
 
 ```bash
-pip install pandas numpy scipy matplotlib requests openpyxl
-export REQUESTS_CA_BUNDLE=/root/.ccr/ca-bundle.crt SSL_CERT_FILE=$REQUESTS_CA_BUNDLE
-python src/data_bloomberg.py      # constituents_chf_monthly, rates_monthly, vz_ap5_track
-python src/data_alternatives.py   # alternatives_chf_monthly
-python src/build_panel.py         # panel_levels_monthly, panel_returns_monthly
-python src/analysis_2008.py       # analysis/*.csv, reports/figures/01-08_*.png
+pip install -r requirements.txt      # pinned versions
+# an egress proxy's CA bundle is picked up from $REQUESTS_CA_BUNDLE if set (no hard-coded path)
+python src/data_bloomberg.py         # constituents_chf_monthly, rates_monthly, vz_ap5_track
+python src/data_alternatives.py      # alternatives_chf_monthly (+ unhedged HY/EM variants)
+python src/build_panel.py            # panel_levels_monthly, panel_returns_monthly
+python src/analysis_2008.py          # analysis/*.csv + results_manifest.json, figures 01-08
+python src/robustness.py             # bootstrap CIs, sensitivity matrix, stress table
 python src/appendix_optimization.py  # appendix (secondary)
-python src/figures_fr.py          # French 300-dpi charts
+python src/figures_fr.py             # French 300-dpi charts
+python tests/test_engine.py          # unit tests
 ```
+
+> **Data note.** `data/processed/*.csv` is the committed canonical snapshot; re-running
+> `data_alternatives.py` pulls **live** Yahoo data and may differ slightly. The Bloomberg/VZ
+> source files under `data/bloomberg/` and `docs/source_materials/` are **confidential** —
+> see `docs/source_register.md`; do **not** make the repository public without checking
+> redistribution rights.
 
 ## Limitations
 
 Investable ETF/fund proxies (not the exact VZ funds); **monthly** frequency understates
-intra-month drawdowns; foreign equity is a USD price index converted to CHF TR (cancels in
-comparisons, validated at 0.955 corr); convertibles start 2009 and the short world-bond index
-is spliced pre-2010; commodity/CTA proxies carry real tracking error; a single historical path.
-Academic reproduction, not investment advice.
+intra-month drawdowns; foreign equity is a USD price index converted to CHF TR (common to all
+books, second-order under band rebalancing, validated at 0.955 corr); the CHF hedge and cash
+are policy-rate approximations; convertibles start 2009 and the short world-bond index is
+spliced pre-2010 (shown not to change conclusions); commodity/CTA proxies carry real tracking
+error; a single historical path (the bootstrap addresses sampling, not model, uncertainty);
+regime inference from four buckets is descriptive, not causal. Academic reproduction, not
+investment advice.

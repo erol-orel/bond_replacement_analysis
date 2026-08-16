@@ -19,7 +19,8 @@ EN_FIGS = [
     ("05_bonds_by_regime.png", "Bond-sleeve behaviour by rate regime."),
     ("06_correlation.png", "Monthly return correlations (2008–2026)."),
     ("07_rolling_corr.png", "Rolling 24-month equity–bond correlation."),
-    ("08_curated_vs_naive.png", "Curated vs naïve replacement basket (100% replaced)."),
+    ("09_bootstrap_ci.png", "Bootstrap ΔSharpe vs AP5 (CI straddles zero) and P(worse drawdown)."),
+    ("08_curated_vs_naive.png", "Curated vs naïve replacement basket — ex-post (100% replaced)."),
 ]
 FR_FIGS = [
     ("01_rendement_cumule.png", "Rendement total cumulé en CHF, net de frais (2008–2026)."),

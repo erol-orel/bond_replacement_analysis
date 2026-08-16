@@ -13,9 +13,11 @@ Sources (provided by the student, Bloomberg / SNB / VZ):
 
 Foreign-equity indices (MSCI World / EM) are Bloomberg *price* levels in USD; we convert
 to a CHF total-return proxy = level x USDCHF, grossed up by a constant net dividend yield
-(DIV_WORLD). This affects the equity CORE, which is identical across every portfolio we
-compare, so it cancels in AP5-vs-replacement contrasts; it is calibrated against the real
-VZ track record in run_reconstruction.py.
+(DIV_WORLD / DIV_EM). These yields are fixed EX ANTE from the long-run MSCI net dividend
+yields (World ~2.0-2.2%, EM ~2.4-2.7%) — they are NOT tuned to make the VZ validation fit.
+The proxy affects the equity CORE, which is common to every compared portfolio; its direct
+level bias is therefore shared across strategies (see docs/methodology.md for the exact,
+non-mechanical statement under band rebalancing).
 
 Output (data/processed/):
   constituents_chf_monthly.csv   month-end CHF total-return levels of the AP5 sleeves
@@ -30,9 +32,12 @@ import pandas as pd
 import openpyxl
 import requests
 
-CA = "/root/.ccr/ca-bundle.crt"
-os.environ.setdefault("REQUESTS_CA_BUNDLE", CA)
-os.environ.setdefault("SSL_CERT_FILE", CA)
+# Respect an existing CA bundle if the environment provides one (e.g. an egress proxy);
+# otherwise fall back to the system defaults. No machine-specific path is hard-coded.
+CA = os.getenv("REQUESTS_CA_BUNDLE") or os.getenv("SSL_CERT_FILE")
+if CA:
+    os.environ.setdefault("REQUESTS_CA_BUNDLE", CA)
+    os.environ.setdefault("SSL_CERT_FILE", CA)
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BB = os.path.join(HERE, "data", "bloomberg")
 PROC = os.path.join(HERE, "data", "processed")
@@ -41,8 +46,8 @@ os.makedirs(PROC, exist_ok=True)
 WB = os.path.join(BB, "Memoire_de_master.xlsx")
 HEDGED = os.path.join(BB, "CHF hedged data.xlsx")
 
-DIV_WORLD = 0.021   # MSCI World net dividend yield add-back (annual), calibrated to VZ
-DIV_EM = 0.026      # MSCI EM net dividend yield add-back (annual)
+DIV_WORLD = 0.021   # MSCI World net dividend yield add-back (annual), fixed ex ante
+DIV_EM = 0.026      # MSCI EM net dividend yield add-back (annual), fixed ex ante
 
 # (date column, value column) 0-indexed in "Indexes data - Bloomberg"
 IDX_COLS = {

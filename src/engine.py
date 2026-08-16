@@ -163,7 +163,7 @@ def perf_metrics(value: pd.Series, rf_annual: float = 0.0,
     return dict(
         CAGR=cagr, Vol=vol, Sharpe=sharpe, Sortino=sortino,
         MaxDD=maxdd, Calmar=calmar, VaR95=var95, CVaR95=cvar95,
-        VaR99=var99, CVaR99=cvar99, MaxDD_days=mx,
+        VaR99=var99, CVaR99=cvar99, MaxDD_periods=mx,
         TotalReturn=v.iloc[-1] / v.iloc[0] - 1, DownsideVol=downside,
     )
 

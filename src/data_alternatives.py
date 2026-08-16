@@ -11,11 +11,14 @@ Broad menu (7 instruments, all with real, investable histories to <=2009):
   em_debt         iShares JPM EM Bond (EMB)       credit       USD -> CHF HEDGED
   managed_futures Guggenheim Mgd Futures (RYMFX)  diversifier  USD -> CHF unhedged
 
-Currency: real/equity-like assets are held UNHEDGED (spot USDCHF); fixed-income-like
-replacements (HY, EM debt) are CHF-HEDGED consistent with VZ's rule that only bonds are
-hedged (PM email). The hedge return = USD local total return + (r_CHF - r_USD)/12 monthly,
-using the SNB and Fed policy-rate paths from rates_monthly.csv (a negative carry / hedge
-cost when CHF rates sit below USD rates).
+Currency: real/equity-like assets are held UNHEDGED (spot USDCHF). For the fixed-income-like
+replacements (HY, EM debt) we take CHF-hedged as the BASE case — an ASSUMPTION, extending
+VZ's *bonds-only-hedged* policy to bond-like replacements (VZ confirmed hedging only for its
+own global bond sleeve, not these instruments). The hedge is a policy-rate-implied
+APPROXIMATION: hedged return = USD local total return + (r_CHF - r_USD)/12 monthly (from the
+SNB/Fed paths) — it ignores forward points, cross-currency basis and roll costs, so it is not
+an actual hedged product return. We therefore also emit the UNHEDGED HY/EM series so the hedge
+assumption can be tested (robustness.py).
 
 Cat bonds are intentionally omitted: no investable vehicle has a clean 2008 history.
 
@@ -28,9 +31,12 @@ import numpy as np
 import pandas as pd
 import requests
 
-CA = "/root/.ccr/ca-bundle.crt"
-os.environ.setdefault("REQUESTS_CA_BUNDLE", CA)
-os.environ.setdefault("SSL_CERT_FILE", CA)
+# Respect an existing CA bundle if the environment provides one (e.g. an egress proxy);
+# otherwise fall back to the system defaults. No machine-specific path is hard-coded.
+CA = os.getenv("REQUESTS_CA_BUNDLE") or os.getenv("SSL_CERT_FILE")
+if CA:
+    os.environ.setdefault("REQUESTS_CA_BUNDLE", CA)
+    os.environ.setdefault("SSL_CERT_FILE", CA)
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROC = os.path.join(HERE, "data", "processed")
 
@@ -76,9 +82,10 @@ def main():
         px = fetch_yahoo(tk)
         loc = px.pct_change()                        # USD local total return
         c = carry.reindex(px.index, method="ffill").fillna(0)
-        r = (loc + c).dropna()
-        lvl = (1 + r).cumprod()
-        out[name] = lvl
+        lvl_h = (1 + (loc + c).dropna()).cumprod()   # policy-rate-implied CHF hedge (base)
+        out[name] = lvl_h
+        fx = usdchf.reindex(px.index, method="ffill")   # unhedged variant for the sensitivity
+        out[f"{name}_unhedged"] = (px * fx).dropna()
 
     df = pd.DataFrame({k: v / v.dropna().iloc[0] * 100 for k, v in out.items()})
     df = df.loc["2008-01-31":"2026-06-30"]

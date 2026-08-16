@@ -35,48 +35,15 @@ os.makedirs(ANL, exist_ok=True); os.makedirs(FIG, exist_ok=True)
 plt.rcParams.update({"figure.dpi": 120, "font.size": 9, "axes.grid": True,
                      "grid.alpha": 0.3, "figure.autolayout": True})
 
-FEE_ANNUAL = 0.0012 + 0.0125          # product + management (agreed with the director)
-PER = 12                               # monthly
+from config_main import (AP5, BOND_SLEEVE, BOND_TOTAL, CORE, PRIMARY_W as BASKET_W,
+                         CURATED_W, REGIMES, STEPS, PER, FEE_ANNUAL, BAND_BASE, TC_BPS,
+                         step_name)
 
-# --- AP5 strategic target: exact VZ Kundendoku slide-5 index composition (VVIA, profil 5) ---
-# Same-index provider splits collapsed to economic exposure; bar figures rounded on the slide.
-AP5 = {
-    # Aktien Schweiz 25%
-    "swiss_equity": 0.11, "sli": 0.12, "spi_extra": 0.02,        # SPI / SLI / SPI Extra
-    # Aktien Welt 25%
-    "world_equity": 0.19, "world_small": 0.03, "em_equity": 0.03,  # MSCI World / Small / EM
-    # Zinswerte Schweiz 16.8%
-    "swiss_bonds": 0.108, "swiss_bonds_1_5": 0.06,               # SBI AAA-BBB / 1-5
-    # Zinswerte Welt 25.2% (hedged CHF)
-    "world_bonds": 0.168, "world_bonds_1_5": 0.084,             # Global Agg / 1-5
-    # Immo CH 5% + Liquidités 3%
-    "real_estate": 0.05, "cash": 0.03,
-}
-BOND_SLEEVE = {"swiss_bonds": 0.108, "swiss_bonds_1_5": 0.06,   # 42% total (16.8 + 25.2)
-               "world_bonds": 0.168, "world_bonds_1_5": 0.084}
-BOND_TOTAL = sum(BOND_SLEEVE.values())
-CORE = {k: v for k, v in AP5.items() if k not in BOND_SLEEVE}  # equity/RE/cash, fixed
-
-# naive replacement basket: the 6 alternatives with full 2008 history, equal-weight
-BASKET = ["gold", "commodities", "infrastructure", "managed_futures", "high_yield", "em_debt"]
-BASKET_W = {k: 1.0 / len(BASKET) for k in BASKET}
-
-# curated basket: drop the two money-losers (commodities, managed futures) and tilt to the
-# defensive credit carry + a gold hedge that best fit a *bond* replacement
-CURATED_W = {"high_yield": 0.35, "em_debt": 0.30, "gold": 0.20, "infrastructure": 0.15}
-
-# four SNB rate regimes (Justification_sous_periodes_BNS.docx)
-REGIMES = {
-    "R1_2008-14_low_positive": ("2008-01-31", "2014-12-31"),
-    "R2_2015-22_negative": ("2015-01-31", "2022-05-31"),
-    "R3_2022-24_hikes_plateau": ("2022-06-30", "2024-02-29"),
-    "R4_2024-26_easing": ("2024-03-31", "2026-06-30"),
-    "Full_2008-26": ("2008-01-31", "2026-06-30"),
-}
+BASKET = list(BASKET_W)
 
 
 def replacement_book(frac: float, basket: dict = BASKET_W) -> dict:
-    """AP5 with `frac` of the bond sleeve moved into `basket` (default = naive equal-weight)."""
+    """AP5 with `frac` of the bond sleeve moved into `basket` (default = primary equal-weight)."""
     book = dict(CORE)
     for k, w in BOND_SLEEVE.items():
         book[k] = w * (1 - frac)
@@ -120,25 +87,19 @@ def load_vz_drift():
 
 
 def net_of_fee(value: pd.Series, fee_annual: float = FEE_ANNUAL) -> pd.Series:
-    """Apply a constant fee load as a monthly drag on the value series."""
+    """Apply a constant fee load as a monthly drag on the value series (exact, multiplicative:
+    net monthly gross-up factor 1/(1+m) where (1+m)^12 = 1+fee_annual)."""
     r = value.pct_change().fillna(0.0)
     m = (1 + fee_annual) ** (1 / PER) - 1
-    net = (1 + r - m).cumprod()
+    net = ((1 + r) / (1 + m)).cumprod()
     return net / net.iloc[0] * 100
-
-
-STEPS = list(range(0, 101, 10))          # 0, 10, 20, ..., 100 % of the bond sleeve replaced
-
-
-def step_name(pct):
-    return "AP5" if pct == 0 else f"repl_{pct}"
 
 
 def run_books(px):
     books = {step_name(p): (AP5 if p == 0 else replacement_book(p / 100)) for p in STEPS}
     gross, net, meta = {}, {}, {}
     for name, book in books.items():
-        bt = backtest(px, book, mode="smart", rel_band=0.20, monitor_freq="ME", tc_bps=10)
+        bt = backtest(px, book, mode="smart", rel_band=BAND_BASE, monitor_freq="ME", tc_bps=TC_BPS)
         gross[name] = bt["value"]
         net[name] = net_of_fee(bt["value"])
         meta[name] = dict(n_rebal=bt["n_rebal"], turnover=round(bt["turnover"], 2))
@@ -150,10 +111,14 @@ def validate_vs_vz(px):
     vz = pd.read_csv(os.path.join(PROC, "vz_ap5_track_monthly.csv"),
                      index_col=0, parse_dates=True)["vz_ap5"]
     vz.index = vz.index.to_period("M").to_timestamp("M")
-    # validate with VZ's REAL allocation drift mapped onto the granular sub-indices.
+    # Validation reconstruction. VZ's real *recorded target allocation* path (category level,
+    # mapped onto the granular sub-indices) is used as the target schedule; because actual VZ
+    # trade dates are unavailable, a change in the recorded target is interpreted as a rebalance
+    # event (a tight 5% band otherwise). This is a stylised benchmark reconstruction, NOT VZ's
+    # exact historical trading sequence.
     sched = load_vz_drift()
     bt = backtest(px, AP5, target_schedule=sched, mode="smart", rel_band=0.05,
-                  monitor_freq="ME", tc_bps=10)
+                  monitor_freq="ME", tc_bps=TC_BPS)
     recon = net_of_fee(bt["value"])
     # align to VZ window and rebase both to 100 at first common month
     common = recon.index.intersection(vz.index)
@@ -162,12 +127,19 @@ def validate_vs_vz(px):
     v = vz.reindex(common); v = v / v.iloc[0] * 100
     rr, vr = r.pct_change().dropna(), v.pct_change().dropna()
     te = (rr - vr).std() * np.sqrt(PER)
+    # regression of VZ returns on the reconstruction: vr = alpha + beta*rr + eps
+    beta, alpha = np.polyfit(rr.values, vr.values, 1)
+    resid = vr.values - (alpha + beta * rr.values)
+    r2 = 1 - resid.var() / vr.values.var()
     stats = dict(months=len(common),
                  recon_total=float(r.iloc[-1] / r.iloc[0] - 1),
                  vz_total=float(v.iloc[-1] / v.iloc[0] - 1),
                  corr=float(rr.corr(vr)),
                  tracking_error_ann=float(te),
-                 mean_abs_month_gap=float((rr - vr).abs().mean()))
+                 mean_abs_month_gap=float((rr - vr).abs().mean()),
+                 reg_alpha_ann=float(alpha * PER),
+                 reg_beta=float(beta),
+                 reg_r2=float(r2))
     return r, v, stats
 
 
@@ -198,12 +170,25 @@ def bond_redundancy(px):
 
 
 # ------------------------------------------------------------------------- regime tables
+def _regime_slice(series, s, e):
+    """Value slice covering a regime, starting ONE month before `s` so the first computed
+    monthly return is the change INTO the regime (boundary convention, audit #23)."""
+    s, e = pd.Timestamp(s), pd.Timestamp(e)
+    idx = series.dropna().index
+    after = idx[idx >= s]
+    if len(after) == 0:
+        return series.iloc[0:0]
+    prior = idx[idx < s]
+    start = prior[-1] if len(prior) else after[0]
+    return series.loc[(series.index >= start) & (series.index <= e)].dropna()
+
+
 def regime_metrics(value_dict):
     out = {}
     for reg, (s, e) in REGIMES.items():
         rows = {}
         for name, v in value_dict.items():
-            seg = v.loc[(v.index >= s) & (v.index <= e)]
+            seg = _regime_slice(v, s, e)
             if len(seg) > 2:
                 m = perf_metrics(seg, periods=PER)
                 rows[name] = dict(CAGR=m["CAGR"], Vol=m["Vol"], Sharpe=m["Sharpe"],
@@ -213,14 +198,13 @@ def regime_metrics(value_dict):
 
 
 def bond_sleeve_by_regime(px):
-    """Return of each bond sub-index (and cash) in each regime — the low-rate vs
-    rising-rate commentary the director asked for."""
+    """Annualised return of each bond sub-index (and cash) in each regime — the low-rate vs
+    rising-rate commentary the director asked for. Uses the regime boundary convention above."""
     rows = {}
     for reg, (s, e) in REGIMES.items():
-        seg = px.loc[(px.index >= s) & (px.index <= e)]
         rows[reg] = {}
         for c in ["swiss_bonds", "swiss_bonds_1_5", "world_bonds", "world_bonds_1_5", "cash"]:
-            sub = seg[c].dropna()
+            sub = _regime_slice(px[c], s, e)
             n = len(sub) - 1
             rows[reg][c] = (sub.iloc[-1] / sub.iloc[0]) ** (PER / n) - 1 if n > 0 else np.nan
     return pd.DataFrame(rows).T
@@ -366,6 +350,28 @@ def main():
         tb.to_csv(os.path.join(ANL, f"regime_{reg}.csv"))
     pd.DataFrame(books).T.fillna(0).to_csv(os.path.join(ANL, "book_weights.csv"))
     pd.Series(val).to_csv(os.path.join(ANL, "ap5_validation.csv"))
+
+    # ---- canonical results manifest: the single source docs must cite (audit #1) ----
+    import json
+    ap5, r100 = full.loc["AP5"], full.loc["repl_100"]
+    cur = curated_tbl.loc["curated_100"]
+    manifest = {
+        "window": "2008-01..2026-06", "frequency": "monthly", "fee_annual": FEE_ANNUAL,
+        "band_base_rel": BAND_BASE, "tc_bps": TC_BPS, "bond_sleeve_pct": round(BOND_TOTAL * 100, 2),
+        "validation": {k: round(val[k], 4) for k in
+                       ["corr", "tracking_error_ann", "mean_abs_month_gap", "recon_total",
+                        "vz_total", "reg_alpha_ann", "reg_beta", "reg_r2"]},
+        "AP5": {"CAGR": round(ap5.CAGR, 4), "Vol": round(ap5.Vol, 4),
+                "Sharpe": round(ap5.Sharpe, 3), "MaxDD": round(ap5.MaxDD, 4)},
+        "repl_100_primary": {"CAGR": round(r100.CAGR, 4), "Vol": round(r100.Vol, 4),
+                             "Sharpe": round(r100.Sharpe, 3), "MaxDD": round(r100.MaxDD, 4)},
+        "curated_100_expost": {"CAGR": round(cur.CAGR, 4), "Sharpe": round(cur.Sharpe, 3),
+                               "MaxDD": round(cur.MaxDD, 4)},
+        "sharpe_by_step": {n: round(full.loc[n, "Sharpe"], 3) for n in net},
+        "swiss_world_bond_corr": round(redun["corr_swiss_world_bonds"], 3),
+    }
+    with open(os.path.join(ANL, "results_manifest.json"), "w") as f:
+        json.dump(manifest, f, indent=2)
 
     # figures
     fig_cumulative(net); fig_validation(r, v); fig_drawdown(net)

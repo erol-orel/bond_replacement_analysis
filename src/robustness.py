@@ -1,0 +1,195 @@
+"""
+Robustness & statistical uncertainty for the MAIN 2008-2026 study (audit response).
+
+Produces, all net of fees, on the actual band-rebalanced portfolios:
+  1. Bootstrap confidence intervals for the replacement-vs-AP5 DIFFERENCES
+     (ΔCAGR, ΔSharpe, ΔMaxDD) — paired stationary block bootstrap on the realised monthly
+     portfolio-return matrix, so the AP5 comparison is preserved path by path.
+  2. Sensitivity matrix: rebalancing band, transaction cost, CHF-hedge assumption, and the
+     2008-09 short-world-bond splice — does "partial replacement is preferable to full"
+     survive?
+  3. Stress-period table (COVID 2020, rate shock 2022, SVB 2023).
+
+Outputs: analysis/robustness_*.csv, analysis/stress_periods.csv
+Run:  python src/robustness.py   (after build_panel.py)
+"""
+from __future__ import annotations
+import os
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+from engine import backtest, perf_metrics
+from config_main import (AP5, CORE, BOND_SLEEVE, BOND_TOTAL, PRIMARY_W, PER, FEE_ANNUAL,
+                         BAND_BASE, BAND_GRID, TC_BPS, TC_GRID, STEPS, STRESS, step_name)
+
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROC = os.path.join(HERE, "data", "processed")
+ANL = os.path.join(HERE, "analysis")
+N_BOOT, MEAN_BLOCK, SEED = 3000, 6, 20260816
+
+
+def net_of_fee(value, fee=FEE_ANNUAL):
+    r = value.pct_change().fillna(0.0)
+    m = (1 + fee) ** (1 / PER) - 1
+    return ((1 + r) / (1 + m)).cumprod()
+
+
+def replacement_book(frac, basket=PRIMARY_W):
+    book = dict(CORE)
+    for k, w in BOND_SLEEVE.items():
+        book[k] = w * (1 - frac)
+    for k, w in basket.items():
+        book[k] = book.get(k, 0.0) + BOND_TOTAL * frac * w
+    return {k: v for k, v in book.items() if v > 1e-9}
+
+
+def book_net_returns(px, frac, band=BAND_BASE, tc=TC_BPS, basket=PRIMARY_W):
+    book = AP5 if frac == 0 else replacement_book(frac, basket)
+    bt = backtest(px, book, mode="smart", rel_band=band, monitor_freq="ME", tc_bps=tc)
+    return net_of_fee(bt["value"]).pct_change().dropna()
+
+
+def _metrics(r):
+    lvl = (1 + r).cumprod()
+    cagr = lvl.iloc[-1] ** (PER / len(r)) - 1
+    vol = r.std() * np.sqrt(PER)
+    sharpe = (r.mean() * PER) / vol if vol > 0 else np.nan
+    dd = (lvl / lvl.cummax() - 1).min()
+    return cagr, sharpe, dd
+
+
+def _block_idx(T, n, mean_block, rng):
+    p = 1.0 / mean_block
+    idx = np.empty((n, T), dtype=np.int64)
+    idx[:, 0] = rng.integers(0, T, size=n)
+    newblk = rng.random((n, T)) < p
+    steps = rng.integers(0, T, size=(n, T))
+    for t in range(1, T):
+        idx[:, t] = np.where(newblk[:, t], steps[:, t], (idx[:, t - 1] + 1) % T)
+    return idx
+
+
+def bootstrap_ci(px):
+    """Paired block bootstrap of ΔCAGR/ΔSharpe/ΔMaxDD (replacement − AP5)."""
+    rng = np.random.default_rng(SEED)
+    rets = {step_name(p): book_net_returns(px, p / 100) for p in STEPS}
+    R = pd.DataFrame(rets).dropna()
+    T = len(R)
+    idx = _block_idx(T, N_BOOT, MEAN_BLOCK, rng)
+    cols = list(R.columns)
+    base = cols.index("AP5")
+    arr = R.values
+    rows = {}
+    for j, name in enumerate(cols):
+        if name == "AP5":
+            continue
+        dC, dS, dD = np.empty(N_BOOT), np.empty(N_BOOT), np.empty(N_BOOT)
+        for i in range(N_BOOT):
+            rr = arr[idx[i]]
+            cj, sj, dj = _metrics(pd.Series(rr[:, j]))
+            cb, sb, db = _metrics(pd.Series(rr[:, base]))
+            dC[i], dS[i], dD[i] = cj - cb, sj - sb, dj - db
+        rows[name] = dict(
+            dCAGR_med=np.median(dC), dCAGR_p5=np.percentile(dC, 5), dCAGR_p95=np.percentile(dC, 95),
+            dSharpe_med=np.median(dS), dSharpe_p5=np.percentile(dS, 5), dSharpe_p95=np.percentile(dS, 95),
+            P_dSharpe_gt0=float(np.mean(dS > 0)),
+            dMaxDD_med=np.median(dD), dMaxDD_p5=np.percentile(dD, 5), dMaxDD_p95=np.percentile(dD, 95),
+            P_worse_drawdown=float(np.mean(dD < 0)))
+    return pd.DataFrame(rows).T
+
+
+def sensitivity(px):
+    """Does 'partial (repl_20) beats AP5 on Sharpe, and full (repl_100) adds drawdown' hold?"""
+    rows = {}
+
+    def summ(tag, band=BAND_BASE, tc=TC_BPS, basket=PRIMARY_W, start=None):
+        p = px if start is None else px.loc[px.index >= start]
+        m = {}
+        for frac, nm in [(0.0, "AP5"), (0.2, "repl_20"), (0.5, "repl_50"), (1.0, "repl_100")]:
+            book = AP5 if frac == 0 else replacement_book(frac, basket)
+            bt = backtest(p, book, mode="smart", rel_band=band, monitor_freq="ME", tc_bps=tc)
+            c, s, d = _metrics(net_of_fee(bt["value"]).pct_change().dropna())
+            m[nm] = (s, d)
+        rows[tag] = dict(
+            AP5_Sharpe=m["AP5"][0], repl20_Sharpe=m["repl_20"][0], repl100_Sharpe=m["repl_100"][0],
+            AP5_MaxDD=m["AP5"][1], repl100_MaxDD=m["repl_100"][1],
+            partial_ge_AP5=m["repl_20"][0] >= m["AP5"][0],
+            full_deeper_DD=m["repl_100"][1] < m["AP5"][1])
+
+    for b in BAND_GRID:
+        summ(f"band_{int(b*100)}pct", band=b)
+    for tc in TC_GRID:
+        summ(f"cost_{int(tc)}bps", tc=tc)
+    # CHF-hedge assumption on HY/EM: base (hedged) vs unhedged
+    unhedged = {"gold": PRIMARY_W["gold"], "commodities": PRIMARY_W["commodities"],
+                "infrastructure": PRIMARY_W["infrastructure"],
+                "managed_futures": PRIMARY_W["managed_futures"],
+                "high_yield_unhedged": PRIMARY_W["high_yield"],
+                "em_debt_unhedged": PRIMARY_W["em_debt"]}
+    summ("hedge_base_hedged")
+    summ("hedge_unhedged_HYEM", basket=unhedged)
+    # short-world-bond splice: full sample (uses splice) vs 2010+ (no spliced 2008-09 data)
+    summ("splice_full_sample")
+    summ("splice_from_2010", start="2010-01-31")
+    return pd.DataFrame(rows).T
+
+
+def stress_table(px):
+    rows = {}
+    for frac in [0.0, 0.2, 0.5, 1.0]:
+        name = step_name(int(frac * 100))
+        book = AP5 if frac == 0 else replacement_book(frac)
+        bt = backtest(px, book, mode="smart", rel_band=BAND_BASE, monitor_freq="ME", tc_bps=TC_BPS)
+        v = net_of_fee(bt["value"])
+        rows[name] = {}
+        for label, (s, e) in STRESS.items():
+            seg = v.loc[(v.index >= s) & (v.index <= e)]
+            rows[name][label] = float(seg.iloc[-1] / seg.iloc[0] - 1) if len(seg) > 1 else np.nan
+    return pd.DataFrame(rows).T
+
+
+def main():
+    px = pd.read_csv(os.path.join(PROC, "panel_levels_monthly.csv"),
+                     index_col=0, parse_dates=True)
+    ci = bootstrap_ci(px)
+    sens = sensitivity(px)
+    stress = stress_table(px)
+    ci.to_csv(os.path.join(ANL, "robustness_bootstrap_ci.csv"))
+    sens.to_csv(os.path.join(ANL, "robustness_sensitivity.csv"))
+    stress.to_csv(os.path.join(ANL, "stress_periods.csv"))
+
+    # figure 09 — bootstrap ΔSharpe vs AP5 (CI straddles zero) + P(worse drawdown)
+    FIG = os.path.join(HERE, "reports", "figures")
+    steps = [c for c in ci.index]
+    x = [int(s.split("_")[1]) for s in steps]
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(11, 4.4))
+    a1.axhline(0, color="k", lw=0.8)
+    a1.fill_between(x, ci["dSharpe_p5"], ci["dSharpe_p95"], alpha=0.2, color="tab:blue",
+                    label="5–95% CI")
+    a1.plot(x, ci["dSharpe_med"], "o-", color="tab:blue", label="median ΔSharpe")
+    a1.set_xlabel("% bond sleeve replaced"); a1.set_ylabel("ΔSharpe vs AP5")
+    a1.set_title("ΔSharpe vs AP5 — CI straddles zero"); a1.legend(fontsize=8)
+    a2.plot(x, ci["P_worse_drawdown"] * 100, "o-", color="tab:red")
+    a2.axhline(50, color="grey", ls="--", lw=1)
+    a2.set_xlabel("% bond sleeve replaced"); a2.set_ylabel("P(worse drawdown than AP5) %")
+    a2.set_title("Replacement reliably deepens drawdown")
+    fig.tight_layout(); fig.savefig(os.path.join(FIG, "09_bootstrap_ci.png"), dpi=120)
+    plt.close(fig)
+
+    pd.set_option("display.width", 240, "display.max_columns", 40)
+    print(f"=== BOOTSTRAP ΔvsAP5 ({N_BOOT} paths, block~{MEAN_BLOCK}m), net of fees ===")
+    show = ["dSharpe_med", "dSharpe_p5", "dSharpe_p95", "P_dSharpe_gt0",
+            "dMaxDD_med", "P_worse_drawdown"]
+    print((ci[show] * [1, 1, 1, 1, 100, 1]).round(3).to_string())
+    print("\n=== SENSITIVITY (does the conclusion survive?) ===")
+    print(sens[["AP5_Sharpe", "repl20_Sharpe", "repl100_Sharpe", "AP5_MaxDD",
+                "repl100_MaxDD", "partial_ge_AP5", "full_deeper_DD"]].round(3).to_string())
+    print("\n=== STRESS PERIODS (total return %, net of fees) ===")
+    print((stress * 100).round(1).to_string())
+
+
+if __name__ == "__main__":
+    main()
