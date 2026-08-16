@@ -263,9 +263,14 @@ risk-adjusted advantage. (The 2010+ sample also changes the period/GFC exposure,
 *sample-window* test, not a pure splice test.)
 
 The conclusion is also **robust to the band architecture itself**: monitoring every constituent
-with its own ±8% band (`analysis/robustness_granular_vs_category.csv`) rebalances far more often
-(≈61–96 vs ≈36–37 triggers) but leaves CAGR/Sharpe/MaxDD essentially identical, confirming the
-category-level primary specification is not doing the work.
+with its own ±8% band rebalances far more often but leaves CAGR/Sharpe/MaxDD essentially
+identical, confirming the category-level primary specification is not doing the work
+(`analysis/robustness_granular_vs_category.csv`):
+
+| Band architecture | AP5 CAGR / Sharpe / MaxDD | repl-20 | repl-100 | rebalances (AP5 / 20 / 100) |
+|---|---|---|---|---|
+| Category (primary) | 3.5% / 0.48 / −20.3% | 3.7% / 0.48 / −21.9% | 4.3% / 0.46 / −28.0% | 36 / 37 / 37 |
+| Per-constituent | 3.5% / 0.48 / −20.4% | 3.6% / 0.48 / −21.8% | 4.3% / 0.46 / −27.9% | 61 / 92 / 96 |
 
 ## 8. Instrument selection — an *ex-post* observation (fig. 08)
 

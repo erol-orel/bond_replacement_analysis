@@ -6,7 +6,8 @@ WHOLE period, and study behaviour ACROSS four SNB rate regimes (not only low-rat
 Pipeline
   1. Load the monthly panel; define the granular VZ AP5 target (Kundendoku slide 5) and the
      replacement books (42% bond sleeve replaced in 10% steps: 0, 10, ..., 100%).
-  2. Backtest every book with VZ Smart Rebalancing (monthly monitoring, +-20% bands),
+  2. Backtest every book with VZ-style category-level Smart Rebalancing (monthly monitoring,
+     VZ-consistent +-8% base-case relative band; +-5/10/15/20% are robustness specifications),
      net of the agreed fee load (0.12% product + 1.25% management = 1.37% / yr).
   3. VALIDATE the reconstructed AP5 against the real VZ AP5 track record (2019-2026).
   4. Descriptive statistics + correlations (incl. the Swiss-vs-world-bond redundancy test).
@@ -386,10 +387,15 @@ def main():
     cur = curated_tbl.loc["curated_100"]
     manifest = {
         "meta": {"code_commit": _git("rev-parse", "--short", "HEAD"),
+                 "generating_commit": _git("rev-parse", "--short", "HEAD"),
                  "code_commit_date": _git("log", "-1", "--format=%cI"),
-                 "note": ("code_commit is HEAD at generation time; results are committed in the "
-                          "immediately following outputs-only commit, so this hash is the code "
-                          "that produced them (deterministic, no wall-clock stamp)."),
+                 "note": ("Commit lineage (two-commit pattern): `generating_commit` (== "
+                          "`code_commit`) is HEAD when this manifest is written — the code that "
+                          "produced these results; the results themselves land in the immediately "
+                          "following outputs-only commit; that outputs commit is then merged, so "
+                          "the branch/repository HEAD after merge is a later merge commit. This "
+                          "hash therefore deterministically identifies the generating code (no "
+                          "wall-clock stamp)."),
                  "python": sys.version.split()[0], "numpy": np.__version__,
                  "pandas": pd.__version__, "sharpe_risk_free": "CHF cash proxy (excess return)",
                  "rebalance_level": ("category/sleeve-level VZ bands (primary); alternatives held "

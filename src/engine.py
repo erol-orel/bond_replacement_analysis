@@ -13,6 +13,11 @@ Transaction costs are applied to the traded turnover.
 The engine is frequency-agnostic; the thesis uses monthly CHF total-return data (annualise
 with periods=12). Historical constituent data are monthly, so the reconstruction observes the
 portfolio monthly and cannot reproduce VZ's intra-month continuous monitoring.
+
+Note on defaults: the `rel_band=0.20` argument default is a generic engine default only. The
+thesis always passes the VZ-consistent base band `BAND_BASE=0.08` (±5/10/15/20% are robustness
+specifications) together with `group_map=CATEGORY`, so the main study monitors ±8% bands at the
+VZ *category* level, not ±20% per constituent. See `config_main.py` and `docs/methodology.md`.
 """
 from __future__ import annotations
 import numpy as np
