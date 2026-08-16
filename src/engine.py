@@ -10,7 +10,9 @@ we check whether any sleeve's weight has left its tolerance band; if so we rebal
 WHOLE book back to target (the VZ chart shows weights snapping back to the target line).
 Transaction costs are applied to the traded turnover.
 
-Everything is daily, in CHF, total return.
+The engine is frequency-agnostic; the thesis uses monthly CHF total-return data (annualise
+with periods=12). Historical constituent data are monthly, so the reconstruction observes the
+portfolio monthly and cannot reproduce VZ's intra-month continuous monitoring.
 """
 from __future__ import annotations
 import numpy as np
@@ -133,8 +135,13 @@ def backtest(prices: pd.DataFrame,
 
 # --------------------------------------------------------------------------- metrics
 def perf_metrics(value: pd.Series, rf_annual: float = 0.0,
-                 periods: int = 252) -> dict:
-    """Standard performance/risk metrics from a value series."""
+                 periods: int = 252, rf_series: pd.Series | None = None) -> dict:
+    """Standard performance/risk metrics from a value series.
+
+    Sharpe/Sortino are computed on EXCESS returns over the risk-free rate. Pass `rf_series`
+    (per-period risk-free returns, e.g. the CHF cash proxy) for a time-varying MAR; otherwise
+    the scalar `rf_annual` is used. Sharpe = mean(excess)/std(portfolio); Sortino uses the
+    proper downside deviation relative to the MAR: sqrt(mean(min(excess,0)^2))."""
     v = value.dropna()
     r = v.pct_change().dropna()
     n = len(r)
@@ -142,9 +149,12 @@ def perf_metrics(value: pd.Series, rf_annual: float = 0.0,
         return {}
     cagr = (v.iloc[-1] / v.iloc[0]) ** (periods / n) - 1
     vol = r.std() * np.sqrt(periods)
-    downside = r[r < 0].std() * np.sqrt(periods)
-    rf_d = (1 + rf_annual) ** (1 / periods) - 1
+    if rf_series is not None:
+        rf_d = rf_series.reindex(r.index).fillna(0.0)
+    else:
+        rf_d = pd.Series((1 + rf_annual) ** (1 / periods) - 1, index=r.index)
     excess = r - rf_d
+    downside = np.sqrt((np.minimum(excess, 0.0) ** 2).mean()) * np.sqrt(periods)  # MAR=rf
     sharpe = excess.mean() / r.std() * np.sqrt(periods) if r.std() > 0 else np.nan
     sortino = excess.mean() * periods / downside if downside > 0 else np.nan
     dd = v / v.cummax() - 1

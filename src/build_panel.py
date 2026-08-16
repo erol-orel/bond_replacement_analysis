@@ -18,7 +18,9 @@ PROC = os.path.join(HERE, "data", "processed")
 
 
 def build_cash(rates: pd.DataFrame) -> pd.Series:
-    m = rates["snb"] / 100.0 / 12.0
+    # Accrue month t on the PRIOR month-end policy rate (information available at the start of
+    # the month) — avoids applying an intra-month rate change retrospectively (audit: no-lookahead).
+    m = (rates["snb"].shift(1) / 100.0 / 12.0).fillna(rates["snb"].iloc[0] / 100.0 / 12.0)
     lvl = (1.0 + m).cumprod()
     return (lvl / lvl.iloc[0] * 100).rename("cash")
 

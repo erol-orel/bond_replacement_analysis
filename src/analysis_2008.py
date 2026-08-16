@@ -161,10 +161,19 @@ def descriptive_stats(px):
 
 
 def bond_redundancy(px):
-    """Descriptive test of whether the two bond sub-indices can collapse to one index."""
+    """Whether the two bond sub-indices can collapse to one: full-sample correlation, OLS beta
+    (swiss on world), R² (shared variance), and the R3-hikes conditional correlation — a
+    correlation alone does not establish non-redundancy (audit #25)."""
     r = px[["swiss_bonds", "world_bonds"]].pct_change().dropna()
     corr = r["swiss_bonds"].corr(r["world_bonds"])
+    beta, alpha = np.polyfit(r["world_bonds"].values, r["swiss_bonds"].values, 1)
+    r3s, r3e = REGIMES["R3_2022-24_hikes_plateau"]
+    r3 = r.loc[(r.index >= r3s) & (r.index <= r3e)]
+    corr_r3 = r3["swiss_bonds"].corr(r3["world_bonds"]) if len(r3) > 2 else np.nan
     return dict(corr_swiss_world_bonds=float(corr),
+                r2_shared_variance=float(corr ** 2),
+                beta_swiss_on_world=float(beta),
+                corr_R3_hikes=float(corr_r3),
                 swiss_vol=float(r["swiss_bonds"].std() * np.sqrt(PER)),
                 world_vol=float(r["world_bonds"].std() * np.sqrt(PER)))
 
@@ -183,14 +192,14 @@ def _regime_slice(series, s, e):
     return series.loc[(series.index >= start) & (series.index <= e)].dropna()
 
 
-def regime_metrics(value_dict):
+def regime_metrics(value_dict, rf_series=None):
     out = {}
     for reg, (s, e) in REGIMES.items():
         rows = {}
         for name, v in value_dict.items():
             seg = _regime_slice(v, s, e)
             if len(seg) > 2:
-                m = perf_metrics(seg, periods=PER)
+                m = perf_metrics(seg, periods=PER, rf_series=rf_series)
                 rows[name] = dict(CAGR=m["CAGR"], Vol=m["Vol"], Sharpe=m["Sharpe"],
                                   MaxDD=m["MaxDD"])
         out[reg] = pd.DataFrame(rows).T
@@ -307,12 +316,13 @@ def fig_rolling_corr(px):
 def run_curated(px):
     """Naive equal-weight basket vs the curated basket, at each replacement step."""
     net = {}
+    cash_ret = px["cash"].pct_change()
     for tag, basket in [("naive", BASKET_W), ("curated", CURATED_W)]:
         for frac in (1 / 3, 2 / 3, 1.0):
-            bt = backtest(px, replacement_book(frac, basket), mode="smart", rel_band=0.20,
-                          monitor_freq="ME", tc_bps=10)
+            bt = backtest(px, replacement_book(frac, basket), mode="smart", rel_band=BAND_BASE,
+                          monitor_freq="ME", tc_bps=TC_BPS)
             net[f"{tag}_{int(round(frac*100))}"] = net_of_fee(bt["value"])
-    rows = {k: perf_metrics(v, periods=PER) for k, v in net.items()}
+    rows = {k: perf_metrics(v, periods=PER, rf_series=cash_ret) for k, v in net.items()}
     tbl = pd.DataFrame(rows).T[["CAGR", "Vol", "Sharpe", "MaxDD", "CVaR95"]]
     return net, tbl
 
@@ -331,18 +341,25 @@ def main():
     px = pd.read_csv(os.path.join(PROC, "panel_levels_monthly.csv"),
                      index_col=0, parse_dates=True)
 
+    # CHF cash proxy monthly return = the risk-free rate for Sharpe/Sortino (excess returns)
+    cash_ret = px["cash"].pct_change()
+
     books, gross, net, meta = run_books(px)
     r, v, val = validate_vs_vz(px)
     desc = descriptive_stats(px)
     redun = bond_redundancy(px)
-    reg_tables = regime_metrics(net)
+    reg_tables = regime_metrics(net, rf_series=cash_ret)
     bond_reg = bond_sleeve_by_regime(px)
     curated_net, curated_tbl = run_curated(px)
     curated_tbl.to_csv(os.path.join(ANL, "curated_vs_naive.csv"))
 
-    # full-period net metrics
-    full = pd.DataFrame({k: perf_metrics(vv, periods=PER) for k, vv in net.items()}).T
-    full = full[["CAGR", "Vol", "Sharpe", "Sortino", "MaxDD", "CVaR95", "Calmar"]]
+    # full-period net metrics (Sharpe/Sortino are EXCESS over the CHF cash proxy)
+    full = pd.DataFrame({k: perf_metrics(vv, periods=PER, rf_series=cash_ret)
+                         for k, vv in net.items()}).T
+    # zero-rf Sharpe kept for comparison/transparency
+    full["Sharpe_rf0"] = pd.Series({k: perf_metrics(vv, periods=PER)["Sharpe"]
+                                    for k, vv in net.items()})
+    full = full[["CAGR", "Vol", "Sharpe", "Sharpe_rf0", "Sortino", "MaxDD", "CVaR95", "Calmar"]]
     full.to_csv(os.path.join(ANL, "perf_full_net.csv"))
     desc.to_csv(os.path.join(ANL, "descriptive_stats.csv"))
     bond_reg.to_csv(os.path.join(ANL, "bond_sleeve_by_regime.csv"))
@@ -351,11 +368,21 @@ def main():
     pd.DataFrame(books).T.fillna(0).to_csv(os.path.join(ANL, "book_weights.csv"))
     pd.Series(val).to_csv(os.path.join(ANL, "ap5_validation.csv"))
 
-    # ---- canonical results manifest: the single source docs must cite (audit #1) ----
-    import json
+    # ---- canonical results manifest: the single source docs must cite (audit #1, #38) ----
+    import json, subprocess, sys
+    def _git(*a):
+        try:
+            return subprocess.check_output(["git", *a], cwd=HERE,
+                                           stderr=subprocess.DEVNULL).decode().strip()
+        except Exception:
+            return "unknown"
     ap5, r100 = full.loc["AP5"], full.loc["repl_100"]
     cur = curated_tbl.loc["curated_100"]
     manifest = {
+        "meta": {"code_commit": _git("rev-parse", "--short", "HEAD"),
+                 "generated_utc": _git("log", "-1", "--format=%cI"),
+                 "python": sys.version.split()[0], "numpy": np.__version__,
+                 "pandas": pd.__version__, "sharpe_risk_free": "CHF cash proxy (excess return)"},
         "window": "2008-01..2026-06", "frequency": "monthly", "fee_annual": FEE_ANNUAL,
         "band_base_rel": BAND_BASE, "tc_bps": TC_BPS, "bond_sleeve_pct": round(BOND_TOTAL * 100, 2),
         "validation": {k: round(val[k], 4) for k in
@@ -368,7 +395,10 @@ def main():
         "curated_100_expost": {"CAGR": round(cur.CAGR, 4), "Sharpe": round(cur.Sharpe, 3),
                                "MaxDD": round(cur.MaxDD, 4)},
         "sharpe_by_step": {n: round(full.loc[n, "Sharpe"], 3) for n in net},
-        "swiss_world_bond_corr": round(redun["corr_swiss_world_bonds"], 3),
+        "sharpe_by_step_rf0": {n: round(full.loc[n, "Sharpe_rf0"], 3) for n in net},
+        "bond_redundancy": {k: round(redun[k], 3) for k in
+                            ["corr_swiss_world_bonds", "r2_shared_variance",
+                             "beta_swiss_on_world", "corr_R3_hikes"]},
     }
     with open(os.path.join(ANL, "results_manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2)
@@ -383,7 +413,7 @@ def main():
     print("=== BOOK WEIGHTS ===")
     print(pd.DataFrame(books).T.fillna(0).round(3).to_string())
     print("\n=== FULL-PERIOD PERFORMANCE (net of fees, 2008-2026) ===")
-    print((full * [100, 100, 1, 1, 100, 100, 1]).round(2).to_string())
+    print((full * [100, 100, 1, 1, 1, 100, 100, 1]).round(2).to_string())
     print("  meta:", meta)
     print("\n=== AP5 VALIDATION vs real VZ (2019-2026) ===")
     for k, x in val.items():

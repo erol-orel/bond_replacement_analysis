@@ -14,10 +14,13 @@ the analysis is read regime-by-regime rather than via a contested "low-rate thre
 
 ## Hypotheses (state which are supported)
 
-- **H1** Partial replacement raises long-run return. → **supported** (monotonic).
-- **H2** Full replacement raises downside risk vs AP5. → **supported & statistically reliable**
-  (P(worse drawdown) ≈ 91%).
-- **H3** The effect is regime-dependent. → **supported** (sign flips across regimes / crisis type).
+- **H1** Partial replacement raises long-run return. → **supported** (monotonic point estimates).
+- **H2a** Full replacement raises **max drawdown**. → **suggestive**: bootstrap favours worse
+  (P≈91%) but the 95% ΔMaxDD interval still includes zero.
+- **H2b** Full replacement raises **tail loss (CVaR)**. → **supported**: worse with ≈95–100%
+  probability from a 20% replacement onward.
+- **H3** The effect is regime-dependent. → **descriptive support** (sign flips across regimes /
+  crisis type; not a formal interaction test).
 - **H4** Partial beats full on the return–risk trade-off. → **qualified**: partial is the better
   *compromise*, but Sharpe differences are **within bootstrap noise** — no unique optimum.
 

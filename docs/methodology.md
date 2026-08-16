@@ -73,9 +73,13 @@ tactically; that drift is used only to tighten the validation (Step 9).
 ## Step 3 — The CHF cash proxy (`build_panel.py`)
 
 Cash is a **policy-rate cash proxy**: the SNB policy-rate path accrued monthly (`snb/12`),
-assuming full and immediate pass-through to cash remuneration. Its *return* is negative over
-2015–2022 (the −0.75% era — essential to the thesis); the wealth index itself does not go
-negative. A SARON-based proxy would be a natural refinement.
+assuming full and immediate pass-through to cash remuneration. To avoid intra-month look-ahead
+(a policy change mid-month applied to the whole month), month *t* is accrued on the **prior
+month-end rate** — the information available at the start of the month. Its *return* is negative
+over 2015–2022 (the −0.75% era); the wealth index itself does not go negative. This CHF cash
+series is also the **risk-free rate** for Sharpe/Sortino (computed on excess returns; a
+zero-risk-free variant is reported alongside and barely differs). A SARON-based proxy would be a
+natural refinement.
 
 The short world-bond index (Global Aggregate 1-5, hedged) begins only in 2010; its broad
 counterpart's returns are **spliced backward** as a proxy for 2008–2009. This makes the short
@@ -89,7 +93,8 @@ The VZ PM confirmed VZ hedges **only its own global bond sleeve** to CHF; equiti
 unhedged. We follow this for the AP5 core. Extending the hedge to the **credit-like
 replacements** (HY, EM debt) is **our modelling assumption**, not a VZ statement. The hedge is
 a **policy-rate-implied approximation**: `r_CHF-hedged ≈ r_USD-local + (r_CHF − r_USD)/12`
-(SNB/Fed paths), which ignores forward points, cross-currency basis and roll cost — so it is
+using the **prior** month-end SNB/Fed differential (same no-look-ahead lag as cash), which
+ignores forward points, cross-currency basis and roll cost — so it is
 *not* an actual hedged-product return. `robustness.py` re-runs with HY/EM **unhedged** to show
 the hedge assumption's impact (it lowers the full-replacement Sharpe from 0.47 to 0.44).
 
@@ -167,16 +172,19 @@ lost far less than broad in the 2022–24 hikes).
 - **Steps:** move **0, 10, 20, …, 100%** of the 42% bond sleeve into the primary
   (pre-specified equal-weight) basket; the equity/RE/cash core stays fixed. Net of fees.
 - **Validation (stylised benchmark, not exact replica):** reconstruct AP5 using VZ's real
-  *recorded target-allocation* path (category level, mapped onto the granular sub-indices) as
-  a target schedule — because VZ trade dates are unavailable, a change in the recorded target
-  is interpreted as a rebalance event. Compared to the real VZ VVIA NAV, 2019–2026:
+  *recorded target-allocation* path (**category level** only — Aktien Ausland/Schweiz,
+  Zinswerte Ausland/Schweiz, Immobilien, Liquidität — mapped onto the granular sub-indices via
+  the Kundendoku split) as a target schedule. This **assumes the within-category index
+  proportions were constant** over the validation window, so the 0.955 is partly a validation of
+  that mapping. Because VZ trade dates are unavailable, a change in the recorded target is
+  interpreted as a rebalance event. Compared to the real VZ VVIA NAV, 2019–2026:
   **corr 0.955**, regression **β 0.97 / α −0.35%/yr / R² 0.91**, tracking error 2.35%/yr,
   cumulative gap +25.1% vs +21.1%. We treat it as a stylised benchmark, not an exact trading
   reconstruction.
 - **Robustness (`robustness.py`):** (i) paired **block-bootstrap CIs** for ΔCAGR/ΔSharpe/ΔMaxDD
   vs AP5 — Sharpe differences straddle zero, drawdown reliably worsens (P up to 91%);
   (ii) **sensitivity matrix** over band, cost, hedge and splice — the qualitative conclusion
-  survives all; (iii) **stress table** (2020/2022/2023).
+  survives the tested variations; (iii) **stress table** (2020/2022/2023, ex-post illustrative).
 - **Optimisation** is a **secondary appendix** (`appendix_optimization.py`, in-sample; *not*
   independent evidence — same sample/proxies/construction).
 - **Config & tests:** all assumptions live in `src/config_main.py` (single source of truth);
@@ -188,22 +196,27 @@ lost far less than broad in the 2022–24 hikes).
 
 ```bash
 pip install -r requirements.txt      # pinned versions
-# an egress proxy's CA bundle is picked up from $REQUESTS_CA_BUNDLE if set (no hard-coded path)
-python src/data_bloomberg.py         # constituents_chf_monthly, rates_monthly, vz_ap5_track
-python src/data_alternatives.py      # alternatives_chf_monthly (+ unhedged HY/EM variants)
-python src/build_panel.py            # panel_levels_monthly, panel_returns_monthly
+
+# --- DETERMINISTIC default: runs on the committed data/processed/ snapshot (no downloads) ---
 python src/analysis_2008.py          # analysis/*.csv + results_manifest.json, figures 01-08
-python src/robustness.py             # bootstrap CIs, sensitivity matrix, stress table
+python src/robustness.py             # bootstrap CIs, sensitivity matrix, stress table (fig 09)
 python src/appendix_optimization.py  # appendix (secondary)
 python src/figures_fr.py             # French 300-dpi charts
-python tests/test_engine.py          # unit tests
+python tests/test_engine.py          # unit tests (7 pass)
+
+# --- OPTIONAL data refresh (pulls LIVE Yahoo data; may differ slightly from the snapshot) ---
+# $REQUESTS_CA_BUNDLE is used if set (egress proxy); no machine-specific path is hard-coded
+python src/data_bloomberg.py && python src/data_alternatives.py && python src/build_panel.py
 ```
 
-> **Data note.** `data/processed/*.csv` is the committed canonical snapshot; re-running
-> `data_alternatives.py` pulls **live** Yahoo data and may differ slightly. The Bloomberg/VZ
-> source files under `data/bloomberg/` and `docs/source_materials/` are **confidential** —
-> see `docs/source_register.md`; do **not** make the repository public without checking
-> redistribution rights.
+> **Reproducibility.** The committed `data/processed/*.csv` **is** the canonical snapshot; the
+> deterministic block above reproduces every number in `results_manifest.json` (which also
+> records the code commit, Python/numpy/pandas versions and the risk-free basis) without any
+> network access. Only the optional refresh block hits live Yahoo.
+>
+> **Confidentiality.** The Bloomberg/VZ source files under `data/bloomberg/` and
+> `docs/source_materials/` are **confidential** — see `docs/source_register.md`. Keep the
+> repository **private**; do not publish without checking redistribution rights.
 
 ## Limitations
 

@@ -56,15 +56,30 @@ def test_fee_is_exact_multiplicative():
 
 
 def test_transaction_cost_equals_turnover():
-    # single rebalance: cost should equal one-way turnover * tc
+    # exact: with one rebalance, wealth(tc)/wealth(0) must equal (1 - turnover*tc/1e4)
     idx = pd.date_range("2008-01-31", periods=3, freq="ME")
     px = pd.DataFrame({"a": [100, 200, 200.0], "b": [100, 100, 100.0]}, index=idx)
     tc = 25.0
-    bt = backtest(px, {"a": 0.5, "b": 0.5}, mode="smart", rel_band=0.10,
-                  monitor_freq="ME", tc_bps=tc)
-    if bt["n_rebal"] >= 1:
-        turn = bt["trades"]["turnover"].iloc[0]
-        assert 0 < turn <= 1.0, "turnover out of range"
+    bt0 = backtest(px, {"a": 0.5, "b": 0.5}, mode="smart", rel_band=0.10, monitor_freq="ME", tc_bps=0)
+    btc = backtest(px, {"a": 0.5, "b": 0.5}, mode="smart", rel_band=0.10, monitor_freq="ME", tc_bps=tc)
+    assert btc["n_rebal"] == 1 and bt0["n_rebal"] == 1, "expected exactly one rebalance"
+    turn = bt0["trades"]["turnover"].iloc[0]
+    ratio = btc["value"].iloc[-1] / bt0["value"].iloc[-1]
+    assert abs(ratio - (1 - turn * tc / 1e4)) < 1e-9, "transaction cost != turnover * tc"
+
+
+def test_no_lookahead():
+    # decisions up to time t must depend only on data up to t: two price paths identical up to
+    # the split, wildly different after -> value series up to the split must be identical.
+    cols = list(AP5)
+    px1 = _prices(n=48, seed=3, cols=cols)
+    px2 = px1.copy()
+    split = 24
+    px2.iloc[split:] = px2.iloc[split:] * np.linspace(1, 5, len(px2) - split)[:, None]  # future shock
+    b1 = backtest(px1, AP5, mode="smart", rel_band=0.2, monitor_freq="ME", tc_bps=10)["value"]
+    b2 = backtest(px2, AP5, mode="smart", rel_band=0.2, monitor_freq="ME", tc_bps=10)["value"]
+    assert np.allclose(b1.iloc[:split].values, b2.iloc[:split].values), \
+        "future prices changed past decisions -> look-ahead"
 
 
 def test_common_equity_shock_no_fake_edge():

@@ -3,7 +3,7 @@ APPENDIX (secondary / theoretical).
 
 The thesis director judged portfolio optimisation "too theoretical" to headline, so this is
 kept deliberately out of the main analysis. It answers only one question: if one *did*
-optimise the 40.75% sleeve over the full 2008-2026 sample (equity/RE/cash core fixed),
+optimise the 42% sleeve over the full 2008-2026 sample (equity/RE/cash core fixed),
 across bonds + the six full-history alternatives, what would the "optimal" sleeve look like
 and how would it compare to the simple AP5 / curated books?
 
@@ -21,6 +21,7 @@ import optimize
 optimize.TRADING = 12                      # monthly annualisation for this appendix
 from optimize import optimise               # noqa: E402
 from engine import backtest, perf_metrics   # noqa: E402
+from config_main import BAND_BASE, TC_BPS   # noqa: E402
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROC = os.path.join(HERE, "data", "processed")
@@ -44,7 +45,7 @@ CAPS = {"swiss_bonds": (0, 0.42), "swiss_bonds_1_5": (0, 0.42), "world_bonds": (
 def net_of_fee(value, fee=0.0137):
     r = value.pct_change().fillna(0.0)
     m = (1 + fee) ** (1 / PER) - 1
-    n = (1 + r - m).cumprod()
+    n = ((1 + r) / (1 + m)).cumprod()          # exact multiplicative fee (matches main study)
     return n / n.iloc[0] * 100
 
 
@@ -61,10 +62,11 @@ def main():
         w = {k: round(v, 4) for k, v in r["weights"].items() if v > 1e-3}
         books[f"OPT_{obj}"] = w
 
+    cash_ret = px["cash"].pct_change()
     rows, weights = {}, {}
     for name, w in books.items():
-        bt = backtest(px, w, mode="smart", rel_band=0.20, monitor_freq="ME", tc_bps=10)
-        m = perf_metrics(net_of_fee(bt["value"]), periods=PER)
+        bt = backtest(px, w, mode="smart", rel_band=BAND_BASE, monitor_freq="ME", tc_bps=TC_BPS)
+        m = perf_metrics(net_of_fee(bt["value"]), periods=PER, rf_series=cash_ret)
         rows[name] = {k: m[k] for k in ["CAGR", "Vol", "Sharpe", "MaxDD", "CVaR95"]}
         weights[name] = w
     tbl = pd.DataFrame(rows).T

@@ -61,18 +61,21 @@ volatilité et le drawdown augmentent, pour un **Sharpe quasi inchangé** (CAGR 
 MaxDD −20,6 %→−27,7 %, Sharpe ≈0,47).
 
 **Statistiques (bootstrap par blocs, 3 000 tirages)** : **aucun** niveau de remplacement ne
-produit un gain de Sharpe distinguable de zéro (les IC de ΔSharpe englobent 0) ; en revanche
-le remplacement **creuse le drawdown de façon fiable** (probabilité jusqu'à **91 %** à 100 %).
+produit un gain de Sharpe distinguable de zéro (IC de ΔSharpe englobent 0). Le drawdown penche
+vers le pire mais son IC à 95 % **inclut encore zéro** (*suggestif*) ; en revanche la **perte
+extrême (CVaR) est pire avec ≈95–100 % de probabilité** dès 20 % de remplacement (*établi*).
 
 **Dépend du type de crise** : le remplacement a *nui* lors du choc déflationniste 2020
 (−10,4 % vs AP5 −6,9 %) mais *aidé* lors du choc de taux 2022 (−6,6 % vs −11,9 %).
 
 ## Recommandation
 
-- **Privilégier un remplacement partiel plutôt qu'intégral.** Un remplacement **faible à
-  modéré (≈ 20–40 %)** offre le meilleur *compromis* rendement–risque historique — mais
-  l'analyse **n'identifie pas de ratio optimal statistiquement unique** (écarts de Sharpe dans
-  le bruit du bootstrap). Le remplacement intégral n'est **pas** soutenu (drawdown fiablement
+- **On ne remplace pas « les obligations » mais *une partie de ce qu'elles font*** (portage,
+  une part de diversification/inflation) — **pas** la duration ni la « fuite vers la qualité »,
+  d'où la dégradation du risque de queue.
+- **Privilégier un remplacement partiel plutôt qu'intégral.** Le pic de Sharpe (estimation
+  ponctuelle) se situe vers **20 %**, mais 20/30/40 % ne sont **pas distinguables
+  statistiquement**. Le remplacement intégral n'est **pas** soutenu (perte extrême fiablement
   pire, pas de gain de Sharpe fiable, perte de la protection « fuite vers la qualité » de 2020).
 - **Conserver la structure obligataire** (suisses + mondiales, larges + courtes 1-5).
 - **Le choix des instruments compte** : un panier « curated » (HR 35 / dette ém. 30 / or 20 /
