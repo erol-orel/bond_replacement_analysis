@@ -1,0 +1,4 @@
+,world_equity,swiss_equity,real_estate,cash,world_bonds,swiss_bonds,gold
+OPT_min_variance,0.2625,0.25,0.05,0.03,0.4075,0.0,0.0
+OPT_max_sharpe,0.2625,0.25,0.05,0.03,0.0,0.2875,0.12
+OPT_min_cvar,0.2625,0.25,0.05,0.03,0.4075,0.0,0.0

@@ -24,6 +24,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+import openpyxl
 from engine import backtest, perf_metrics
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -44,9 +45,13 @@ BOND_SLEEVE = {"world_bonds": 0.2395, "swiss_bonds": 0.168}     # 40.75% total
 BOND_TOTAL = sum(BOND_SLEEVE.values())
 CORE = {k: v for k, v in AP5.items() if k not in BOND_SLEEVE}  # equity/RE/cash, fixed
 
-# diversified replacement basket: the 6 alternatives with full 2008 history, equal-weight
+# naive replacement basket: the 6 alternatives with full 2008 history, equal-weight
 BASKET = ["gold", "commodities", "infrastructure", "managed_futures", "high_yield", "em_debt"]
 BASKET_W = {k: 1.0 / len(BASKET) for k in BASKET}
+
+# curated basket: drop the two money-losers (commodities, managed futures) and tilt to the
+# defensive credit carry + a gold hedge that best fit a *bond* replacement
+CURATED_W = {"high_yield": 0.35, "em_debt": 0.30, "gold": 0.20, "infrastructure": 0.15}
 
 # four SNB rate regimes (Justification_sous_periodes_BNS.docx)
 REGIMES = {
@@ -58,14 +63,35 @@ REGIMES = {
 }
 
 
-def replacement_book(frac: float) -> dict:
-    """AP5 with `frac` of the bond sleeve moved into the diversified basket."""
+def replacement_book(frac: float, basket: dict = BASKET_W) -> dict:
+    """AP5 with `frac` of the bond sleeve moved into `basket` (default = naive equal-weight)."""
     book = dict(CORE)
     for k, w in BOND_SLEEVE.items():
         book[k] = w * (1 - frac)
-    for k, w in BASKET_W.items():
+    for k, w in basket.items():
         book[k] = book.get(k, 0.0) + BOND_TOTAL * frac * w
     return {k: v for k, v in book.items() if v > 1e-9}
+
+
+def load_vz_drift():
+    """The real VZ AP5 target-allocation path (Consolidation_allocations.xlsx) as a
+    target_schedule, used to tighten the validation reconstruction."""
+    wb = openpyxl.load_workbook(os.path.join(HERE, "data", "bloomberg",
+                                             "Consolidation_allocations.xlsx"), data_only=True)
+    ws = wb.active
+    sched = []
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        if row[0] is None:
+            continue
+        f = lambda x: float(x) if x is not None else 0.0
+        book = {"world_equity": f(row[3]), "swiss_equity": f(row[4]), "real_estate": f(row[9]),
+                "world_bonds": f(row[7]), "swiss_bonds": f(row[8]), "cash": f(row[10])}
+        s = sum(book.values())
+        if s <= 0:
+            continue
+        sched.append((pd.Timestamp(row[0]), {k: v / s for k, v in book.items()}))
+    wb.close()
+    return sched
 
 
 def net_of_fee(value: pd.Series, fee_annual: float = FEE_ANNUAL) -> pd.Series:
@@ -95,7 +121,11 @@ def validate_vs_vz(px):
     vz = pd.read_csv(os.path.join(PROC, "vz_ap5_track_monthly.csv"),
                      index_col=0, parse_dates=True)["vz_ap5"]
     vz.index = vz.index.to_period("M").to_timestamp("M")
-    bt = backtest(px, AP5, mode="smart", rel_band=0.20, monitor_freq="ME", tc_bps=10)
+    # validate with VZ's REAL allocation drift (tighter than fixed weights); the 2008
+    # backward extension still uses fixed strategic weights per the director.
+    sched = load_vz_drift()
+    bt = backtest(px, AP5, target_schedule=sched, mode="smart", rel_band=0.05,
+                  monitor_freq="ME", tc_bps=10)
     recon = net_of_fee(bt["value"])
     # align to VZ window and rebase both to 100 at first common month
     common = recon.index.intersection(vz.index)
@@ -260,6 +290,29 @@ def fig_rolling_corr(px):
     fig.savefig(os.path.join(FIG, "07_rolling_corr.png")); plt.close(fig)
 
 
+def run_curated(px):
+    """Naive equal-weight basket vs the curated basket, at each replacement step."""
+    net = {}
+    for tag, basket in [("naive", BASKET_W), ("curated", CURATED_W)]:
+        for frac in (1 / 3, 2 / 3, 1.0):
+            bt = backtest(px, replacement_book(frac, basket), mode="smart", rel_band=0.20,
+                          monitor_freq="ME", tc_bps=10)
+            net[f"{tag}_{int(round(frac*100))}"] = net_of_fee(bt["value"])
+    rows = {k: perf_metrics(v, periods=PER) for k, v in net.items()}
+    tbl = pd.DataFrame(rows).T[["CAGR", "Vol", "Sharpe", "MaxDD", "CVaR95"]]
+    return net, tbl
+
+
+def fig_curated(net_books, curated_net):
+    fig, ax = plt.subplots(figsize=(9.5, 5))
+    ax.plot(net_books["P0_AP5_benchmark"], label="P0_AP5_benchmark", lw=2.4, color="black")
+    ax.plot(net_books["P3_replace_100"], label="naive basket (100%)", lw=1.5, color="tab:orange")
+    ax.plot(curated_net["curated_100"], label="curated basket (100%)", lw=1.8, color="tab:green")
+    ax.set_title("Curated vs naive bond-replacement basket (100% replaced, net of fees)")
+    ax.set_ylabel("Index (100 = 2008-01)"); ax.legend(fontsize=8)
+    fig.savefig(os.path.join(FIG, "08_curated_vs_naive.png")); plt.close(fig)
+
+
 def main():
     px = pd.read_csv(os.path.join(PROC, "panel_levels_monthly.csv"),
                      index_col=0, parse_dates=True)
@@ -270,6 +323,8 @@ def main():
     redun = bond_redundancy(px)
     reg_tables = regime_metrics(net)
     bond_reg = bond_sleeve_by_regime(px)
+    curated_net, curated_tbl = run_curated(px)
+    curated_tbl.to_csv(os.path.join(ANL, "curated_vs_naive.csv"))
 
     # full-period net metrics
     full = pd.DataFrame({k: perf_metrics(vv, periods=PER) for k, vv in net.items()}).T
@@ -286,6 +341,7 @@ def main():
     fig_cumulative(net); fig_validation(r, v); fig_drawdown(net)
     fig_regime_bars(reg_tables); fig_bonds_by_regime(bond_reg)
     fig_corr_heatmap(px); fig_rolling_corr(px)
+    fig_curated(net, curated_net)
 
     pd.set_option("display.width", 220, "display.max_columns", 30)
     print("=== BOOK WEIGHTS ===")
@@ -304,7 +360,9 @@ def main():
         t = reg_tables[reg]
         print(f"  [{reg}]  " + "  ".join(f"{b.split('_',1)[1] if '_' in b else b}={t.loc[b,'CAGR']*100:.1f}"
               for b in t.index))
-    print("\nSaved analysis/*.csv and reports/figures/01-07_*.png")
+    print("\n=== CURATED vs NAIVE BASKET (net of fees, full period) ===")
+    print((curated_tbl * [100, 100, 1, 100, 100]).round(2).to_string())
+    print("\nSaved analysis/*.csv and reports/figures/01-08_*.png")
 
 
 if __name__ == "__main__":

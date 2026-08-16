@@ -52,20 +52,29 @@ replacement contrasts; it only matters for the validation, where it performs wel
 
 ## 4. Validation — the reconstruction is real
 
-Reconstructed AP5 (indices → Smart Rebalancing → net of fees) vs the **actual VZ VVIA track
-record**, 2019–2026 (85 months, fig. 02):
+Reconstructed AP5 (indices → Smart Rebalancing → net of fees, using VZ's **real allocation
+drift** for the validation window) vs the **actual VZ VVIA track record**, 2019–2026 (85
+months, fig. 02):
 
 | | value |
 |---|---|
-| Correlation of monthly returns | **0.94** |
-| Annualised tracking error | **2.7%** |
-| Mean absolute monthly gap | 0.6% |
-| Total return: reconstruction vs real VZ | +25.5% vs +21.1% |
+| Correlation of monthly returns | **0.95** |
+| Annualised tracking error | **2.5%** |
+| Mean absolute monthly gap | 0.5% |
+| Total return: reconstruction vs real VZ | +24.9% vs +21.1% |
 
-The reconstruction tracks the real product through COVID, the 2022 sell-off and the
-recovery. The small level overshoot reflects fixed strategic weights (the real product
-drifts tactically) and the index-vs-fund/dividend proxy. This is the credibility anchor for
-extending the same machinery back to 2008.
+**Is 2.5%/yr tracking error acceptable?** Yes, for this purpose. Context: a passive index
+fund tracks its benchmark at ~0.1–0.5%/yr; an *active* fund runs 2–6%/yr; a **proxy
+reconstruction that uses different instruments** (public index series, not VZ's exact
+CHF-share-class ETFs) and public data sits naturally in the 2–3% range. We decomposed it:
+the residual is **not** tactical drift (using VZ's real allocation path only moved it
+2.7% → 2.5%) — it is the **foreign-equity leg**, a USD *price* index converted with spot FX
+and a constant dividend, standing in for 51% of the book. Two things make this immaterial to
+the thesis: (i) the equity/RE/cash **core is identical in AP5 and in every replacement
+book, so this proxy error cancels exactly in all comparisons**; (ii) the reconstruction
+still reproduces AP5's *dynamics* — correlation 0.95 and a visual match through COVID, the
+2022 sell-off and the recovery. That is all the validation needs to do: license extending
+the same machinery back to 2008.
 
 ## 5. The alternatives (investable, long-history, net-of-fee)
 
@@ -146,6 +155,44 @@ and negative only when bonds do their job (falling rates, R1).
 - **Mind the weak diversifiers.** Equal-weighting commodities and managed futures (both
   negative over the sample) drags the basket; a curated basket (gold + credit + real income)
   would likely dominate the naïve one — a natural robustness extension.
+
+## 8b. Basket construction matters — curated vs naïve (fig. 08)
+
+The naïve basket equal-weights all six alternatives, including the two that **lost money**
+over 2008–2026 (commodities −1.6%, managed futures −0.7%). A **curated** basket that drops
+those two and tilts toward the defensive credit carry plus a gold hedge — the instruments
+that actually resemble a *bond* replacement — dominates it at every step (net of fees):
+
+| Book | CAGR | Vol | Sharpe | MaxDD |
+|---|---|---|---|---|
+| AP5 benchmark | 3.74% | 7.9% | 0.51 | −19.3% |
+| Replace 100% — **naïve** (equal-weight 6) | 4.47% | 9.9% | 0.49 | −26.8% |
+| Replace 100% — **curated** (HY 35 / EM 30 / gold 20 / infra 15) | **5.00%** | 9.9% | **0.55** | −26.6% |
+
+The curated basket lifts Sharpe **above** the AP5 benchmark (0.55 vs 0.51) at every
+replacement step, where the naïve basket did not. Lesson for the thesis: the replacement
+result is **as much about *which* alternatives as about *how much*** — a point worth making
+explicitly, and a natural place to note that even the curated basket still carries more
+drawdown than the bond core, so a partial replacement remains the balanced call.
+
+## Appendix A. Optimisation (secondary / theoretical)
+
+Kept out of the headline at the director's request. If one optimises the 40.75% sleeve
+in-sample over 2008–2026 (equity/RE/cash core fixed, across bonds + the six alternatives,
+realistic caps; `src/appendix_optimization.py`), net of fees:
+
+| Optimised sleeve | CAGR | Vol | Sharpe | MaxDD | Sleeve holds |
+|---|---|---|---|---|---|
+| Min-variance | 3.61% | 7.9% | 0.49 | −19.5% | **100% world bonds** |
+| Min-CVaR | 3.61% | 7.9% | 0.49 | −19.5% | **100% world bonds** |
+| Max-Sharpe | 4.56% | 8.2% | **0.59** | −18.4% | 29% Swiss bonds + 12% gold (cap) |
+
+The message reinforces the main analysis rather than competing with it: given free rein and
+full hindsight, the risk-minimising optimisers **keep the sleeve entirely in bonds**, and
+the return-maximising one keeps a large Swiss-bond position plus a capped gold hedge — *no
+optimiser abandons bonds wholesale*. These weights are **in-sample and optimistic** (they
+see the whole path); they are a descriptive upper bound, not an implementable rule, which is
+exactly why the analysis leads with the transparent step/curated books instead.
 
 ## 9. Caveats
 

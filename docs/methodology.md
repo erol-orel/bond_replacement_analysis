@@ -80,8 +80,10 @@ book and the bond sleeve itself are measured in each regime — this replaces th
 Move **0 / 33 / 66 / 100%** of the 40.75% bond sleeve into the equal-weight basket of the
 six full-history alternatives; equity/RE/cash core fixed. Descriptive statistics and the
 Swiss-vs-world-bond redundancy test decide whether the sleeve can be simplified (it cannot:
-corr 0.79, divergent in R3). Optimisation is kept as a **secondary/appendix** exercise per
-the director.
+corr 0.79, divergent in R3). A **curated** basket (HY 35 / EM debt 30 / gold 20 / infra 15,
+dropping the two negative-return diversifiers) is compared to the naïve equal-weight one and
+dominates it (fig. 08). Optimisation is kept as a **secondary/appendix** exercise per the
+director (`src/appendix_optimization.py`, in-sample, monthly annualisation).
 
 ## 8. Reproduce
 

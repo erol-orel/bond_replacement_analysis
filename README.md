@@ -56,7 +56,8 @@ export REQUESTS_CA_BUNDLE=/root/.ccr/ca-bundle.crt SSL_CERT_FILE=$REQUESTS_CA_BU
 python src/data_bloomberg.py      # constituents_chf_monthly, rates_monthly, vz_ap5_track
 python src/data_alternatives.py   # alternatives_chf_monthly
 python src/build_panel.py         # panel_levels_monthly, panel_returns_monthly
-python src/analysis_2008.py       # analysis/*.csv, reports/figures/01-07_*.png
+python src/analysis_2008.py       # analysis/*.csv, reports/figures/01-08_*.png
+python src/appendix_optimization.py   # secondary/theoretical optimised sleeve (appendix)
 ```
 
 ## Portfolios (2008–2026 study)
@@ -67,9 +68,12 @@ python src/analysis_2008.py       # analysis/*.csv, reports/figures/01-07_*.png
 | P2 | Replace 66% | 66% |
 | P3 | Replace 100% | 100% |
 
-Basket = equal weight of the six alternatives with full 2008 history (gold, commodities,
-infrastructure, managed futures, high yield, EM debt); convertibles (from 2009) analysed
-separately.
+Naïve basket = equal weight of the six alternatives with full 2008 history (gold,
+commodities, infrastructure, managed futures, high yield, EM debt). A **curated** basket
+(HY 35 / EM debt 30 / gold 20 / infrastructure 15, dropping the two money-losers) dominates
+it — Sharpe 0.55 vs 0.49 at full replacement, above AP5's 0.51 (fig. 08). A secondary
+in-sample optimisation appendix (`appendix_optimization.py`) shows even the optimiser keeps
+bonds.
 
 ## Important caveats
 Investable ETF/fund **proxies** (not the exact VZ funds); **monthly** frequency understates
