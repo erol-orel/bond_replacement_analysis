@@ -46,10 +46,12 @@ THESE_FIGS = [
 def build(md_src, figdir, figs, out_docx, title, heading, toc=False):
     with open(md_src, encoding="utf-8") as f:
         body = f.read()
-    lines = [body, "", f"\n\\newpage\n", f"## {heading}", ""]
-    for i, (fn, cap) in enumerate(figs, 1):
-        path = os.path.join(figdir, fn).replace("\\", "/")
-        lines += [f"**Figure {i} — {cap}**", "", f"![]({path})", ""]
+    lines = [body]
+    if figs:
+        lines += ["", f"\n\\newpage\n", f"## {heading}", ""]
+        for i, (fn, cap) in enumerate(figs, 1):
+            path = os.path.join(figdir, fn).replace("\\", "/")
+            lines += [f"**Figure {i} — {cap}**", "", f"![]({path})", ""]
     tmp = os.path.join(HERE, "_tmp_" + os.path.basename(out_docx) + ".md")
     with open(tmp, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
@@ -72,6 +74,10 @@ def main():
           os.path.join(HERE, "Guide_pas_a_pas_FR.docx"),
           "Guide pas à pas — comprendre et justifier l'analyse (VZ AP5, 2008–2026)",
           "Figures (illustrations)", toc=True)
+    build(os.path.join(ROOT, "reports", "tracabilite_code_FR.md"), FIGFR, [],
+          os.path.join(HERE, "Tracabilite_code_FR.docx"),
+          "Traçabilité — où se trouve chaque chose dans le code (VZ AP5)",
+          "", toc=True)
     build(os.path.join(ROOT, "reports", "resume_executif.md"), FIGFR, FR_FIGS,
           os.path.join(HERE, "Resume_executif_FR.docx"),
           "Résumé exécutif — Alternatives aux obligations (VZ AP5, 2008–2026)",

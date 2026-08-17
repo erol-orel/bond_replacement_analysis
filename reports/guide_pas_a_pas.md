@@ -246,4 +246,5 @@ Ce qu'on peut réellement dire :
 | Ce guide simple | `reports/guide_pas_a_pas.md` |
 | Les chiffres officiels (source unique) | `analysis/results_manifest.json` |
 | Le détail méthodologique complet | `docs/methodology.md` |
+| **Où se trouve chaque calcul dans le code (lignes exactes)** | `reports/tracabilite_code_FR.md` |
 | Les graphiques | `reports/figures_fr/` (dont T1–T4, les nouveaux) |
