@@ -51,6 +51,11 @@ def build(md_src, figdir, figs, out_docx, title, heading, toc=False):
 
 
 def main():
+    # version principale de la thèse (FR), structurée comme le premier document
+    build(os.path.join(ROOT, "reports", "these_principale_FR.md"), FIGFR, FR_FIGS,
+          os.path.join(HERE, "These_principale_FR.docx"),
+          "Alternatives aux obligations dans un portefeuille suisse (VZ AP5, 2008–2026)",
+          "Figures", toc=True)
     build(os.path.join(ROOT, "reports", "guide_pas_a_pas.md"), FIGFR, FR_FIGS,
           os.path.join(HERE, "Guide_pas_a_pas_FR.docx"),
           "Guide pas à pas — comprendre et justifier l'analyse (VZ AP5, 2008–2026)",
@@ -59,10 +64,6 @@ def main():
           os.path.join(HERE, "Resume_executif_FR.docx"),
           "Résumé exécutif — Alternatives aux obligations (VZ AP5, 2008–2026)",
           "Figures")
-    build(os.path.join(ROOT, "reports", "thesis_structured.md"), FIG, EN_FIGS,
-          os.path.join(HERE, "Thesis_structured_EN.docx"),
-          "Replacing bonds in a Swiss portfolio — a structured thesis (VZ AP5, 2008–2026)",
-          "Figures", toc=True)
     build(os.path.join(ROOT, "reports", "thesis_report.md"), FIG, EN_FIGS,
           os.path.join(HERE, "Bond_replacement_full_report_EN.docx"),
           "Alternatives to bonds — empirical foundation (VZ AP5, 2008–2026)",
