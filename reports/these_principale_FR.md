@@ -214,7 +214,17 @@ est protégé**, il ne supprime pas le risque de crise.
 
 ## VII. Réallocation proposée — portefeuille cible
 
-On procède en trois étapes, du plus simple au plus avancé.
+On procède en trois étapes, du plus simple au plus avancé. Voici d'abord la **carte de tout ce qui
+est testé** — ce qui est remplacé, par quoi, et de combien (le cœur actions/immobilier/liquidités
+de 58 % ne bouge jamais) :
+
+| Portefeuille | Ce qui est remplacé | Par quoi | De combien |
+|---|---|---|---|
+| **AP5** (référence) | rien | — | 0 % |
+| **Étape A** (× 6) | obligations | **une seule** alternative | 0 → 100 % (pas de 10 %) |
+| **Étape B — égal** | obligations | mélange équipondéré des 6 | 0 → 100 % |
+| **Étape B — trié** | obligations | HY 35 / EM 30 / or 20 / infra 15 | 0 → 100 % |
+| **Étape C** | obligations + poche | poids choisis par l'optimiseur | en échantillon |
 
 ### Étape A — remplacer les obligations par UNE alternative à la fois
 
@@ -231,8 +241,22 @@ classé par Sharpe :
 | Managed futures seuls | 2,9 % | 0,32 | −26 % |
 | Matières premières seules | 2,4 % | 0,24 | −39 % |
 
-**Conclusion de l'Étape A :** seule l'or, isolée, bat la référence sur le Sharpe. Tous les autres
-font aussi bien ou moins bien, et deux perdent de l'argent.
+**Conclusion de l'Étape A :** seule l'or, isolée, bat la référence sur le Sharpe (voir **figure
+T1**). Tous les autres font aussi bien ou moins bien, et deux perdent de l'argent.
+
+Et si l'on ne remplace qu'**une partie** des obligations (25 / 50 / 75 %) par une seule
+alternative, le classement ne change pas — l'or domine à toutes les doses, les perdants restent
+derrière l'AP5 (**figure T3**) :
+
+| Sharpe si l'on remplace… | 25 % | 50 % | 75 % | 100 % |
+|---|---|---|---|---|
+| par de l'or | 0,54 | 0,58 | 0,60 | 0,60 |
+| par du haut rendement | 0,49 | 0,49 | 0,48 | 0,48 |
+| par de la dette émergente | 0,48 | 0,49 | 0,48 | 0,47 |
+| par des infrastructures | 0,47 | 0,44 | 0,43 | 0,41 |
+| par des managed futures | 0,45 | 0,41 | 0,36 | 0,32 |
+| par des matières premières | 0,41 | 0,35 | 0,29 | 0,24 |
+| *(rappel AP5 = 0,48)* | | | | |
 
 ### Étape B — remplacer par un MÉLANGE (et pourquoi ce mélange)
 
@@ -272,6 +296,11 @@ d'obligations** et n'ajoute qu'un peu d'or. Il ne remplace jamais les obligation
 même message que les Étapes A et B, par une méthode totalement différente.
 
 ### Recommandation finale
+
+Le résultat central se lit d'un coup d'œil sur la **courbe de compromis** (**figure T2**) : chaque
+palier de remplacement pousse le portefeuille vers le haut *et* vers la droite — plus de rendement,
+mais plus de risque — sans jamais améliorer le Sharpe. Le rendement cumulé (**figure T4**) montre la
+même chose : les remplacements finissent plus haut mais avec des chutes plus profondes.
 
 - **Ne pas remplacer les obligations en totalité.** Cela aggrave la pire perte et la perte extrême
   sans gain de Sharpe fiable, et retire la protection de type 2020.
