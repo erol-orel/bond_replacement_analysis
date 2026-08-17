@@ -74,6 +74,10 @@ def main():
           os.path.join(HERE, "Guide_pas_a_pas_FR.docx"),
           "Guide pas à pas — comprendre et justifier l'analyse (VZ AP5, 2008–2026)",
           "Figures (illustrations)", toc=True)
+    build(os.path.join(ROOT, "reports", "resultats_complets_FR.md"), FIGFR, [],
+          os.path.join(HERE, "Resultats_complets_FR.docx"),
+          "Résultats complets — tous les calculs reliés au code (VZ AP5, 2008–2026)",
+          "", toc=True)
     build(os.path.join(ROOT, "reports", "tracabilite_code_FR.md"), FIGFR, [],
           os.path.join(HERE, "Tracabilite_code_FR.docx"),
           "Traçabilité — où se trouve chaque chose dans le code (VZ AP5)",
