@@ -1,189 +1,249 @@
-# Guide pas à pas — comprendre et justifier l'analyse
+# Guide pas à pas — tout expliquer, très simplement
 
-**Mémoire HEC Lausanne · « Alternatives à la poche obligataire dans un portefeuille suisse »
-· VZ AP5 · CHF, mensuel, net de frais · 2008–2026**
+**Mémoire HEC Lausanne · « Alternatives aux obligations » · mandat VZ AP5 · CHF, mensuel, net de
+frais · février 2008 – juin 2026**
 
-> But de ce document : expliquer **simplement et une étape à la fois** ce qui a été fait, et
-> pourquoi, pour que chaque décision puisse être justifiée. Aucun jargon n'est utilisé sans être
-> expliqué en une phrase. Les chiffres cités sont ceux du fichier de résultats officiel
-> (`analysis/results_manifest.json`).
+> À quoi sert ce document. Il explique **absolument tout** ce qui a été fait, **une étape à la
+> fois**, dans un langage très simple — comme si on l'expliquait à quelqu'un qui n'a jamais fait
+> de finance. Chaque mot compliqué est expliqué. Chaque décision est justifiée. L'objectif est que
+> tu puisses tout comprendre et tout réexpliquer à quelqu'un d'autre.
 
 ---
 
-## 1. L'objectif, en une phrase
+## PARTIE 0 — Le vocabulaire de base (à lire en premier)
 
-Savoir si l'on peut **remplacer la poche obligataire (42 %)** du portefeuille VZ **AP5** par
-d'autres actifs (or, matières premières, infrastructures, etc.), et **à quel prix en termes de
-risque** — sur toute la période 2008–2026 et selon l'environnement de taux d'intérêt.
+Avant de parler de l'étude, voici les mots essentiels, avec des images simples.
 
-Autrement dit : *les obligations posent problème quand les taux montent ; peut-on faire mieux
-avec autre chose, sans prendre trop de risque ?*
+- **Un portefeuille**, c'est un panier de placements. On met dedans différents « ingrédients »
+  (actions, obligations, or…) dans certaines proportions.
+- **Une action**, c'est une part d'entreprise. Ça rapporte beaucoup sur le long terme mais ça
+  monte et descend fort (risqué).
+- **Une obligation**, c'est un **prêt**. Tu prêtes de l'argent à un État ou une entreprise, et en
+  échange on te verse un petit intérêt régulier, puis on te rend ton argent à la fin. C'est
+  **moins risqué** que les actions, mais ça rapporte peu.
+- **VZ AP5**, c'est le portefeuille étudié : un produit réel de la société suisse VZ, « profil 5 »
+  (assez dynamique). Il contient à peu près **50 % d'actions, 42 % d'obligations, 5 %
+  d'immobilier, 3 % de liquidités**.
+- **Les « 42 % obligations »**, c'est le gros bloc de prêts du portefeuille. C'est **lui** que la
+  thèse veut peut-être remplacer.
+- **Le rendement**, c'est ce que ça rapporte, en général exprimé en **% par an**.
+- **Le risque**, c'est à quel point ça bouge et à quel point on peut perdre. On le mesure de
+  plusieurs façons (voir Partie 3).
+- **« Net de frais »**, ça veut dire *après avoir enlevé les frais* (la banque prend une
+  commission ; on la retire pour être réaliste).
 
-## 2. Les trois questions (au lieu de cinq hypothèses)
+**Le problème de départ, en une phrase.** Les obligations rapportent très peu depuis des années
+(taux d'intérêt bas), et quand les taux **remontent** (comme en 2022), elles **perdent** de la
+valeur. Donc on se demande : *peut-on remplacer une partie de ces obligations par autre chose de
+mieux ?* C'est toute la thèse.
 
-Toute l'analyse tient en **trois questions simples** :
+## PARTIE 1 — L'objectif et les trois questions
 
-1. **Rendement** — remplacer les obligations change-t-il le **rendement** à long terme ?
-2. **Risque** — cela change-t-il le **risque**, surtout les grosses pertes (les baisses profondes
-   et les pertes extrêmes) ?
-3. **Régime** — la réponse dépend-elle de l'**environnement de taux** (la politique de la BNS) ?
+**L'objectif, en une phrase.** Savoir si l'on peut remplacer les **42 % d'obligations** du
+portefeuille AP5 par d'autres placements, **et à quel prix en risque**, sur la période 2008–2026.
 
-> La question « vaut-il mieux remplacer *un peu* ou *tout* ? » n'est **pas** une quatrième
-> hypothèse : c'est une **recommandation** que l'on tire à la fin, une fois les trois questions
-> répondues.
+On répond à **trois questions simples** :
 
-## 3. Quelques mots à connaître (une phrase chacun)
+1. **Rendement** — remplacer les obligations, est-ce que ça **rapporte plus** ?
+2. **Risque** — est-ce que ça **augmente le risque**, surtout les grosses pertes ?
+3. **Régime** — est-ce que la réponse **change selon l'époque** (taux qui montent ou qui
+   descendent) ?
 
-| Mot | Ce que ça veut dire, simplement |
+C'est tout. Trois questions. On ne cherche pas *le* pourcentage magique ; on cherche à comprendre
+le **compromis** entre rendement et risque.
+
+## PARTIE 2 — Les « ingrédients » de remplacement testés
+
+On teste **six** placements alternatifs qui existent vraiment, qu'on peut acheter, et qui ont un
+historique depuis 2008 :
+
+| Alternative | En une phrase |
 |---|---|
-| **AP5 / VVIA** | Le profil de placement n°5 de VZ (≈50 % actions, 42 % obligations, immobilier, liquidités). |
-| **Poche obligataire (42 %)** | La partie « obligations » du portefeuille : obligations suisses (16,8 %) + mondiales (25,2 %). |
-| **Rendement (CAGR)** | Le gain moyen par an sur toute la période. |
-| **Volatilité** | À quel point la valeur bouge : plus c'est haut, plus ça monte et descend fort. |
-| **Drawdown (max)** | La pire baisse depuis un sommet : « combien on a perdu au pire moment ». |
-| **Perte extrême (CVaR)** | La perte moyenne dans les **pires** mois (les 5 % de mois les plus mauvais). |
-| **Sharpe** | Le rendement **rapporté au risque** : « combien de rendement par unité de risque ». Plus haut = mieux. |
-| **Net de frais** | Après avoir enlevé les frais (voir étape 5). |
+| **Or** | Métal précieux, valeur refuge en cas de crise. Ne verse aucun intérêt. |
+| **Haut rendement (HY)** | Obligations d'entreprises plus risquées, qui paient plus d'intérêt. |
+| **Dette émergente (EM)** | Obligations de pays en développement, plus d'intérêt, plus de risque. |
+| **Infrastructures** | Actions d'entreprises d'autoroutes, d'énergie, etc. Verse des revenus. |
+| **Managed futures** | Fonds « suiveurs de tendance » automatiques. Censés aider en crise. |
+| **Matières premières** | Pétrole, métaux, blé… Censé protéger contre l'inflation. |
 
-## 4. Les étapes de l'analyse, une par une
+On a aussi **considéré puis écarté** d'autres candidats, avec des raisons claires : les
+**convertibles** (trop proches des actions), les **CLO** (pas de données propres), les **ILS /
+obligations catastrophe** et le **private credit** (pas assez liquides, pas de bon historique).
+On le dit dans la thèse pour montrer qu'on ne les a pas oubliés — on les a exclus **exprès**.
 
-Chaque étape dit **ce qu'on a fait**, **pourquoi**, et **ce que ça a donné**.
+## PARTIE 3 — Comment on mesure (les chiffres à connaître)
 
-### Étape 1 — Rassembler les données réelles
-- **Ce qu'on a fait :** on part des vrais indices Bloomberg du portefeuille AP5 (actions suisses
-  SPI/SLI/SPI Extra, actions monde MSCI, obligations suisses et mondiales, immobilier), en francs
-  suisses, mois par mois, de 2008 à 2026.
-- **Pourquoi :** pour que le portefeuille étudié soit **le vrai AP5**, pas une approximation
-  inventée.
-- **Résultat :** un tableau mensuel propre de tous les composants du portefeuille.
+Pour chaque portefeuille, on regarde toujours les mêmes choses. Voici ce que chaque mot veut dire,
+très simplement :
+
+- **Rendement (CAGR)** — le gain **moyen par an**. Exemple : 4 % veut dire qu'en moyenne le
+  portefeuille a grandi de 4 % chaque année.
+- **Volatilité** — à quel point ça **bouge**. Élevée = ça monte et descend fort (stressant).
+- **Pire perte (drawdown)** — la **plus grosse chute** depuis un sommet. Exemple : −28 % veut dire
+  qu'au pire moment, on avait perdu 28 % depuis le point haut.
+- **Perte extrême (CVaR)** — dans les **pires mois** (les 5 % les plus mauvais), combien on perd en
+  moyenne. C'est le « risque de catastrophe ».
+- **Sharpe** — le chiffre le plus important : le **rendement rapporté au risque**. Il répond à :
+  *« pour le risque que je prends, est-ce que je suis bien payé ? »* **Plus il est haut, mieux
+  c'est.** Deux portefeuilles peuvent rapporter pareil, mais celui avec le Sharpe le plus élevé le
+  fait avec **moins de risque** — c'est le meilleur.
+
+> Astuce pour Erta : si tu ne devais retenir qu'un seul chiffre, ce serait le **Sharpe**. Gagner
+> plus en prenant beaucoup plus de risque, ce n'est pas « mieux » — le Sharpe corrige justement
+> pour ça.
+
+## PARTIE 4 — Les étapes de l'analyse, une par une
+
+Chaque étape dit : **ce qu'on a fait**, **pourquoi**, **ce que ça a donné**.
+
+### Étape 1 — Rassembler les vraies données
+- **Fait :** on récupère les vrais indices Bloomberg de chaque ingrédient du portefeuille AP5, en
+  francs suisses, mois par mois, de 2008 à 2026.
+- **Pourquoi :** pour travailler sur le **vrai** portefeuille, pas une version inventée.
+- **Résultat :** un grand tableau mensuel, propre, de tous les ingrédients.
 
 ### Étape 2 — Reconstruire le portefeuille AP5
-- **Ce qu'on a fait :** on assemble ces indices avec les poids exacts de la fiche VZ
-  (*Kundendoku*, planche 5) : 25 % actions suisses, 25 % actions monde, 16,8 % obligations
-  suisses, 25,2 % obligations mondiales, 5 % immobilier, 3 % liquidités.
-- **Pourquoi :** c'est le portefeuille de référence auquel on comparera tous les remplacements.
-- **Résultat :** une courbe de valeur de l'AP5 reconstitué, 2008–2026.
+- **Fait :** on assemble ces ingrédients avec les poids exacts de la fiche officielle VZ (25 %
+  actions suisses, 25 % actions monde, 16,8 % + 25,2 % obligations, 5 % immobilier, 3 % cash).
+- **Pourquoi :** c'est le portefeuille de **référence** ; tout sera comparé à lui.
+- **Résultat :** la courbe de valeur de l'AP5 « reconstitué », 2008–2026.
 
-### Étape 3 — Vérifier que la reconstruction est fidèle
-- **Ce qu'on a fait :** on compare notre AP5 reconstitué à la **vraie valeur du produit VZ**
-  (données réelles 2019–2026).
-- **Pourquoi :** pour prouver que notre reconstruction ressemble vraiment au produit réel, sinon
-  toute la suite serait sur du sable.
-- **Résultat :** très bonne correspondance — **corrélation 0,95**, écart de suivi ≈ 2,4 %/an. On
-  a aussi vérifié que ce résultat **ne dépend pas** des réglages techniques (voir étape 6). On
-  parle donc d'un **repère fidèle mais stylisé**, pas d'une copie exacte au centime près.
+### Étape 3 — Vérifier que notre reconstruction est fidèle
+- **Fait :** on compare notre AP5 reconstitué au **vrai produit VZ** (dont on a les vraies valeurs
+  2019–2026).
+- **Pourquoi :** si notre copie ne ressemblait pas à l'original, toute la suite serait fausse. Il
+  faut le **prouver**.
+- **Résultat :** très bonne ressemblance (**corrélation 0,95** — proche de 1 = quasi identique). On
+  a même vérifié que ce résultat tient quel que soit le réglage technique. On parle donc d'un
+  **repère fidèle mais stylisé**, pas d'une copie au centime près (honnête).
 
-### Étape 4 — Choisir les remplaçants (et écarter les mauvais candidats)
-- **Ce qu'on a fait :** on retient **six** actifs alternatifs qui ont tous un historique depuis
-  2008 et qu'on peut réellement acheter : **or, matières premières, infrastructures, managed
-  futures, obligations à haut rendement (HY), dette émergente (EM)**.
-- **Pourquoi ce filtre :** on n'accepte qu'un actif *investissable, liquide, avec un prix
-  observable et des frais calculables* — une exigence du directeur.
-- **Écartés, avec raison :** **ILS** (pas d'historique public propre), **private equity/dette
-  privée** (illiquide, valeurs « lissées », argent bloqué), **fonds hypothécaires suisses** (pas
-  de série publique trouvée). On les cite pour montrer qu'ils ont été considérés puis écartés.
+### Étape 4 — Choisir les remplaçants (et écarter les mauvais)
+- **Fait :** on retient les **six** alternatives de la Partie 2, et on écarte les autres avec des
+  raisons.
+- **Pourquoi :** on n'accepte qu'un placement *qu'on peut vraiment acheter, revendre vite, et dont
+  on peut calculer le rendement après frais*.
+- **Résultat :** une liste honnête et défendable de candidats.
 
-### Étape 5 — Enlever les frais (pour comparer honnêtement)
-- **Ce qu'on a fait :** on applique à **tous** les portefeuilles les mêmes frais VZ : **1,37 %/an**
-  (0,12 % produit + 1,25 % gestion), convenus avec le directeur.
-- **Pourquoi :** comparer AP5 et remplacements **après frais**, comme un vrai client les vivrait,
-  et à armes égales.
+### Étape 5 — Enlever les frais (pour comparer juste)
+- **Fait :** on retire à **tous** les portefeuilles les mêmes frais VZ : **1,37 % par an**.
+- **Pourquoi :** comparer ce qu'un vrai client toucherait *après frais*, et à armes égales.
 - **Résultat :** toutes les courbes sont « nettes de frais ».
 
-### Étape 6 — Rééquilibrer le portefeuille comme le fait VZ
-- **Ce qu'on a fait :** VZ ne rééquilibre pas à date fixe ; il surveille des **bandes** autour de
-  la cible et ne rééquilibre que si un **groupe d'actifs** (catégorie) sort de sa bande. On
-  reproduit ça avec une bande de **±8 %** au **niveau des catégories** (les six alternatives
-  formant **une seule poche**).
-- **Pourquoi le niveau « catégorie » :** la question est de remplacer la **poche** obligataire,
-  pas d'inventer un système de micro-gestion actif par actif. C'est aussi ce que décrit la
-  documentation VZ.
-- **Vérification :** on a refait le calcul en surveillant **chaque** actif individuellement — ça
-  déclenche beaucoup plus de transactions (≈ 61–96 contre ≈ 36–37) mais **donne quasiment les
-  mêmes résultats**. La conclusion ne dépend donc pas de ce choix technique.
+### Étape 6 — Rééquilibrer comme le fait VZ
+- **Fait :** VZ ne rééquilibre pas à date fixe ; il **surveille des marges** autour de la cible et
+  ne rééquilibre que si un **groupe** d'actifs sort de sa marge (±8 %). On reproduit ça.
+- **Pourquoi :** on veut imiter le **vrai** fonctionnement du produit, pas un rééquilibrage
+  artificiel.
+- **Résultat + vérification :** on a aussi testé en surveillant **chaque** actif un par un — ça
+  déclenche beaucoup plus d'opérations mais **change à peine les résultats**. Donc notre choix ne
+  fausse rien.
 
-### Étape 7 — Remplacer les obligations par paliers de 10 %
-- **Ce qu'on a fait :** on remplace la poche obligataire **par tranches** : 0 % (= AP5), 10 %,
-  20 %, … jusqu'à 100 %, en répartissant à parts égales entre les six alternatives.
-- **Pourquoi les paliers :** pour voir **une courbe** (l'effet augmente-t-il doucement ?) plutôt
-  que trois points isolés — c'est plus informatif et plus honnête.
-- **Résultat :** onze portefeuilles comparables, de « AP5 intact » à « obligations entièrement
-  remplacées ».
+### Étape 7 — Remplacer les obligations par doses de 10 %
+- **Fait :** on remplace les obligations **par tranches** : 0 % (= AP5), 10 %, 20 %… jusqu'à 100 %.
+- **Pourquoi :** pour voir une **courbe** (l'effet augmente-t-il doucement ?), pas seulement
+  quelques points isolés.
+- **Résultat :** onze portefeuilles comparables.
 
 ### Étape 8 — Mesurer rendement ET risque
-- **Ce qu'on a fait :** pour chaque palier, on calcule le rendement (CAGR), la volatilité, la pire
-  baisse (drawdown), la perte extrême (CVaR) et le **Sharpe** (rendement rapporté au risque).
-- **Pourquoi :** un rendement plus élevé ne vaut rien s'il coûte trop de risque ; il faut regarder
-  **les deux ensemble**.
-- **Résultat (le cœur de l'étude) :** plus on remplace, **plus le rendement monte** (de 3,55 % à
-  4,28 %/an), **mais** la volatilité et les pertes augmentent aussi (pire baisse de −20 % à −28 %),
-  et le **Sharpe ne s'améliore jamais** (≈ 0,48 stable jusqu'à ~50 %, puis il baisse).
+- **Fait :** pour chaque dose, on calcule rendement, volatilité, pire perte, perte extrême, Sharpe.
+- **Pourquoi :** un rendement plus élevé ne vaut rien s'il coûte trop de risque. On regarde **les
+  deux ensemble**.
+- **Résultat (le cœur) :** plus on remplace, **plus le rendement monte** (3,55 % → 4,28 %), **mais
+  le risque aussi** (pire perte −20 % → −28 %), et le **Sharpe ne s'améliore jamais**.
 
-### Étape 9 — Découper par régime de taux (BNS)
-- **Ce qu'on a fait :** on coupe la période en **quatre régimes** de la BNS : R1 taux bas positifs
-  (2008–14), R2 taux négatifs (2015–22), R3 hausses (2022–24), R4 assouplissement (2024–26).
-- **Pourquoi :** répond à la **Question 3** et évite un seuil « taux bas » arbitraire ; on lit
-  directement comment chaque régime se comporte.
-- **Résultat :** le remplacement **coûte** quand les obligations sont fortes (R1) et **rapporte**
-  quand elles souffrent (R2, R4). On note aussi que les obligations **mondiales** ont beaucoup
-  souffert des hausses de 2022–24 (−2,9 %/an) alors que les **suisses** sont restées positives.
+### Étape 9 — Regarder chaque époque (régime de taux)
+- **Fait :** on découpe 2008–2026 en **quatre périodes** selon la politique de la BNS.
+- **Pourquoi :** répond à la Question 3 ; évite un seuil « taux bas » arbitraire.
+- **Résultat :** remplacer **coûte** quand les obligations sont fortes, et **rapporte** quand elles
+  souffrent. C'est un **pari sur l'époque**.
 
-### Étape 10 — Tester la solidité (robustesse)
-- **Ce qu'on a fait :** on vérifie que la conclusion **tient** quand on change les hypothèses :
-  taille de bande (±5/8/10/15/20 %), coûts de transaction (0–50 pb), couverture de change des
-  HY/EM, période (avec/sans 2008–09). On ajoute un **bootstrap** — une technique qui rejoue
-  l'histoire des milliers de fois en mélangeant les mois — pour savoir si les écarts sont
-  **réels** ou dus au hasard.
-- **Pourquoi :** un bon résultat doit survivre à des choix raisonnables différents ; sinon il est
-  fragile.
-- **Résultat :** le remplacement **intégral aggrave la perte extrême dans tous les cas testés**
-  (probabilité ≈ 99–100 %). Aucun niveau de remplacement n'améliore le Sharpe de façon fiable.
+### Étape 10 — Vérifier la solidité (robustesse)
+- **Fait :** on refait tout en changeant les hypothèses (marges, frais, couverture, période), et on
+  utilise un **bootstrap** — une technique qui **rejoue l'histoire des milliers de fois** en
+  mélangeant les mois, pour voir si un résultat est **vrai** ou dû à la chance.
+- **Pourquoi :** un bon résultat doit **survivre** à des choix différents.
+- **Résultat :** le remplacement total **aggrave la perte extrême dans presque 100 % des cas**, et
+  **aucune** dose n'améliore le Sharpe de façon fiable.
 
-### Étape 11 — Regarder les crises (2020 vs 2022)
-- **Ce qu'on a fait :** on compare deux crises opposées : le krach déflationniste de 2020 (COVID)
-  et le choc de taux de 2022.
-- **Pourquoi :** montrer que le remplacement ne supprime pas le risque — il en **change la
-  nature**.
-- **Résultat :** en 2020, remplacer a **nui** (les obligations protégeaient) ; en 2022, remplacer
-  a **aidé** (obligations et actions baissaient ensemble). *Le remplacement change contre quelle
-  crise on est protégé.*
+### Étape 11 — Regarder les crises (2020 contre 2022)
+- **Fait :** on compare deux crises opposées.
+- **Pourquoi :** montrer que le remplacement ne supprime pas le risque, il en **change la nature**.
+- **Résultat :** en **2020** (COVID), remplacer a **nui** (les obligations protégeaient) ; en
+  **2022** (choc de taux), remplacer a **aidé** (obligations et actions baissaient ensemble).
 
-## 5. Le résultat principal, en clair
+## PARTIE 5 — Les trois façons de remplacer (le cœur des résultats)
 
-> **Remplacer les obligations augmente le rendement, mais augmente aussi la volatilité et les
-> pertes extrêmes, sans améliorer la performance ajustée au risque.**
->
-> Ce n'est donc **pas** la découverte d'un « meilleur actif » que les obligations : c'est un
-> **choix de budget de risque**. On ne remplace pas « les obligations », mais **une partie de ce
-> qu'elles font** (le portage, un peu de diversification) — **pas** la protection en cas de crise
-> ni la duration. C'est pour cela que le risque de perte extrême empire.
+C'est la partie la plus importante à réexpliquer. Trois approches, de la plus simple à la plus
+avancée.
 
-## 6. La recommandation
+### Approche A — une seule alternative à la fois
+On remplace **toutes** les obligations par **un seul** ingrédient, et on compare (**figure T1**).
+Résultat clair : **seul l'or**, tout seul, fait mieux que l'AP5 (Sharpe 0,60 contre 0,48). Le haut
+rendement et la dette émergente font pareil que l'AP5 mais avec de plus grosses chutes. Les
+matières premières et les managed futures ont carrément **perdu de l'argent**.
 
-- **Éviter le remplacement intégral** : il aggrave nettement les pertes extrêmes sans gain de
-  Sharpe fiable, et supprime la protection de type 2020.
-- **Un remplacement partiel** est un **compromis** défendable (plus de rendement à Sharpe quasi
-  constant), **pas** un optimum : les données ne désignent aucun pourcentage « idéal ».
-- **Conserver la structure obligataire** (suisses + mondiales, longues + courtes).
-- Le **choix des instruments** compte (un panier trié fait un peu mieux), mais c'est un constat
-  *après coup*, à valider hors échantillon — ce n'est pas la recommandation.
+> À retenir : parmi six alternatives, **une seule** (l'or) est meilleure toute seule. Ce n'est pas
+> évident au départ — d'où l'intérêt de tester une par une.
 
-## 7. Ce qui reste à faire (le travail de rédaction)
+### Approche B — un mélange (et pourquoi ce mélange)
+Mettre 42 % dans un seul actif, c'est dangereux (tous les œufs dans le même panier). Donc on
+mélange. Mais **quel** mélange ?
+- **Mélange équipondéré** (parts égales des six) : Sharpe **0,46** — *moins bien que l'AP5* !
+  Pourquoi ? Parce qu'il inclut les deux perdants (matières premières, managed futures).
+- **Mélange trié** (on garde les bons, on jette les perdants : haut rendement 35 %, dette émergente
+  30 %, or 20 %, infrastructures 15 %) : Sharpe **0,52** — mieux que l'AP5.
 
-L'analyse empirique (les chiffres, les graphiques, les tests) est **terminée et verrouillée**. Ce
-qui reste relève de la **rédaction du mémoire**, à écrire par l'étudiante :
+> La leçon : un mélange « bête » (tout à parts égales) est **moins bon** que de garder les
+> obligations. Il faut **choisir** les ingrédients — et ce choix est justifié par l'Approche A.
+> Attention honnête : ce mélange trié est choisi *après avoir vu les résultats*, donc c'est une
+> **illustration**, pas une promesse.
 
-- la **revue de littérature** ;
-- le **cadre théorique** et les **références** ;
-- l'introduction, la discussion et la conclusion rédigées ;
-- la mise en forme finale.
+### Approche C — laisser un ordinateur optimiser
+On laisse un **optimiseur** (un programme) choisir les meilleurs poids possibles, en regardant tout
+l'historique. Résultat frappant : même **libre de tout enlever**, il **garde la plupart des
+obligations** et ajoute seulement **un peu d'or**. Il ne remplace **jamais** tout.
 
-## 8. Où trouver chaque chose dans le dépôt
+> Trois méthodes différentes (une par une, mélange, optimiseur) disent **la même chose** : garder
+> les obligations, ajouter au plus un peu d'or.
 
-| Vous voulez… | Fichier |
+## PARTIE 6 — La conclusion, en langage simple
+
+> **Remplacer les obligations fait gagner un peu plus, mais fait aussi risquer beaucoup plus — sans
+> être mieux payé pour ce risque.**
+
+Autrement dit : on ne trouve **pas** un placement « meilleur que les obligations ». On **change le
+niveau de risque** du portefeuille. C'est un choix, pas une amélioration gratuite.
+
+Ce qu'on peut réellement dire :
+- **Ne pas tout remplacer** : ça aggrave les grosses pertes sans meilleur Sharpe.
+- **Le seul ajout utile** historiquement, c'est **un peu d'or, à côté des obligations** (pas à leur
+  place) — et encore, c'est un pari concentré sur une période où l'or a bien marché.
+- **Garder les obligations** (suisses + mondiales, longues + courtes) : elles se comportent
+  différemment selon les époques et se complètent.
+
+## PARTIE 7 — Les questions qu'Erta pourrait poser (et les réponses)
+
+- *« Pourquoi 2008 et pas avant ? »* — Parce que l'un des ingrédients (la dette émergente) commence
+  en février 2008. Pour comparer tous les portefeuilles sur **exactement la même période**, on part
+  de là.
+- *« Pourquoi des proxys (ETF) et pas les vrais fonds VZ ? »* — Parce qu'il faut un historique long,
+  public et net de frais. Les ETF/indices le fournissent ; on le dit clairement.
+- *« L'or à 0,60, pourquoi ne pas tout mettre en or ? »* — Parce que c'est **un seul actif**, très
+  volatil, sans aucun revenu, et le beau résultat vient d'une période **favorable** à l'or. Mettre
+  42 % du portefeuille sur un seul pari, c'est imprudent.
+- *« Le résultat est-il sûr ? »* — Le côté « le remplacement total aggrave les grosses pertes » est
+  **très solide** (survit à tous les tests). Le petit avantage d'un remplacement partiel, lui,
+  **dépend des hypothèses** — on est honnête là-dessus.
+- *« Est-ce que la thèse est finie ? »* — L'**analyse** (chiffres, graphiques, tests) est finie. Il
+  reste à **écrire** le mémoire : revue de littérature, cadre théorique, références, introduction,
+  discussion, conclusion. Ça, c'est le travail de rédaction de l'étudiante.
+
+## PARTIE 8 — Où se trouve chaque chose
+
+| Tu veux… | Fichier |
 |---|---|
+| La version principale de la thèse (FR) | `reports/these_principale_FR.md` |
+| Ce guide simple | `reports/guide_pas_a_pas.md` |
 | Les chiffres officiels (source unique) | `analysis/results_manifest.json` |
-| Le détail méthodologique complet | `docs/methodology.md` (avec le tableau « toutes les hypothèses en un coup d'œil ») |
-| Le rapport complet (EN) | `reports/thesis_report.md` |
-| Le résumé exécutif (FR) | `reports/resume_executif.md` |
-| Les graphiques | `reports/figures/` (EN) et `reports/figures_fr/` (FR, 300 dpi) |
+| Le détail méthodologique complet | `docs/methodology.md` |
+| Les graphiques | `reports/figures_fr/` (dont T1–T4, les nouveaux) |

@@ -30,6 +30,18 @@ FR_FIGS = [
     ("08_curated_vs_naif.png", "Panier curated vs naïf (100 % remplacé)."),
 ]
 
+# figure set specific to the main thesis version (single-alt / mix / trade-off)
+THESE_FIGS = [
+    ("T1_etape_A_une_alternative.png",
+     "Étape A — remplacer 100 % des obligations par une seule alternative (seule l'or dépasse l'AP5)."),
+    ("T3_sharpe_par_dose.png", "Étape A (détail) — Sharpe selon la dose de remplacement, par alternative."),
+    ("T2_courbe_compromis.png", "La courbe de compromis : plus on remplace, plus rendement ET risque montent."),
+    ("T4_cumule_ap5_or_melange.png", "Rendement cumulé net de frais — AP5 vs remplacements à 100 %."),
+    ("05_obligations_par_regime.png", "Comportement des obligations par régime de taux."),
+    ("04_rendement_par_regime.png", "Rendement annualisé par régime de taux (BNS)."),
+    ("02_validation.png", "Validation : AP5 reconstitué vs performance réelle VZ."),
+]
+
 
 def build(md_src, figdir, figs, out_docx, title, heading, toc=False):
     with open(md_src, encoding="utf-8") as f:
@@ -52,7 +64,7 @@ def build(md_src, figdir, figs, out_docx, title, heading, toc=False):
 
 def main():
     # version principale de la thèse (FR), structurée comme le premier document
-    build(os.path.join(ROOT, "reports", "these_principale_FR.md"), FIGFR, FR_FIGS,
+    build(os.path.join(ROOT, "reports", "these_principale_FR.md"), FIGFR, THESE_FIGS,
           os.path.join(HERE, "These_principale_FR.docx"),
           "Alternatives aux obligations dans un portefeuille suisse (VZ AP5, 2008–2026)",
           "Figures", toc=True)
