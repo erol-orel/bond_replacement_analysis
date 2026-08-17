@@ -70,9 +70,9 @@ def main():
           os.path.join(HERE, "These_principale_FR.docx"),
           "Alternatives aux obligations dans un portefeuille suisse (VZ AP5, 2008–2026)",
           "Figures", toc=True)
-    build(os.path.join(ROOT, "reports", "guide_pas_a_pas.md"), FIGFR, FR_FIGS,
-          os.path.join(HERE, "Guide_pas_a_pas_FR.docx"),
-          "Guide pas à pas — comprendre et justifier l'analyse (VZ AP5, 2008–2026)",
+    build(os.path.join(ROOT, "reports", "guide_global_FR.md"), FIGFR, FR_FIGS,
+          os.path.join(HERE, "Guide_global_FR.docx"),
+          "Guide global — vue d'ensemble du projet (VZ AP5, 2008–2026)",
           "Figures (illustrations)", toc=True)
     build(os.path.join(ROOT, "reports", "resultats_complets_FR.md"), FIGFR, [],
           os.path.join(HERE, "Resultats_complets_FR.docx"),
