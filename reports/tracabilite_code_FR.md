@@ -37,7 +37,7 @@ Tout est centralisé dans **un seul fichier**, `src/config_main.py`, pour évite
 
 ## 3. Les étapes de l'analyse (fichier principal `src/analysis_2008.py`)
 
-| Étape (cf. guide pas à pas) | Fichier : lignes |
+| Étape (cf. guide global) | Fichier : lignes |
 |---|---|
 | Construire un portefeuille de remplacement (dose × panier) | `src/analysis_2008.py:46-53` (`replacement_book`) |
 | Appliquer les frais **exactement** `(1+r)/(1+m)` | `src/analysis_2008.py:90-96` (`net_of_fee`) |

@@ -314,5 +314,5 @@ même chose : les remplacements finissent plus haut mais avec des chutes plus pr
 ## Ce qui reste à faire (travail de rédaction)
 
 L'analyse empirique (données, portefeuilles, résultats, robustesse) est complète et reproductible.
-Restent à écrire par l'étudiante : la **revue de littérature**, le **cadre théorique**, les
-**références**, l'introduction, la discussion et la conclusion rédigées.
+Restent à rédiger : la **revue de littérature**, le **cadre théorique**, les **références**,
+l'introduction, la discussion et la conclusion.
