@@ -84,6 +84,13 @@ infrastructures 15 %), qui écarte les perdants, remonte à **0,52**.
 **Approche C — allocation optimisée.** Un optimiseur libre de tout choisir **garde la plupart des
 obligations** et n'ajoute qu'un peu d'or. Il ne remplace jamais tout.
 
+**Benchmarks de contrôle.** Trois portefeuilles de comparaison ferment les objections naturelles :
+remplacer les obligations par de simples **actions** donne un Sharpe légèrement supérieur au mix
+d'alternatives (0,50 contre 0,46) — le surplus de rendement des alternatives est donc surtout du
+risque de marché ; remplacer par du **cash** fait moins bien (0,43) ; et remplacer **seulement les
+obligations mondiales** (en gardant les suisses) préserve le Sharpe de l'AP5 avec un downside moins
+dégradé — le compromis le plus défendable si l'on tient à remplacer.
+
 > Trois méthodes différentes disent la même chose : garder les obligations, ajouter au plus un
 > peu d'or.
 

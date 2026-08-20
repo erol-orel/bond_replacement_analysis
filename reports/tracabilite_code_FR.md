@@ -59,6 +59,14 @@ Tout est centralisé dans **un seul fichier**, `src/config_main.py`, pour évite
 | Balayage 25/50/75/100 % par alternative | `src/single_alternatives.py:60-71` (`sweep_table`) |
 | Sorties CSV | `src/single_alternatives.py:81-82` |
 
+## 4b. Benchmarks de comparaison (actions, cash, asymétrique)
+
+| Ce qui a été fait | Fichier : lignes |
+|---|---|
+| Obligations → actions (mix AP5) et → cash | `src/benchmark_portfolios.py:33-41` (paniers) + `:54-58` |
+| Remplacement des seules obligations mondiales | `src/benchmark_portfolios.py:43-51` (`world_only_book`) |
+| Tableau complet + balayage par dose, sorties CSV | `src/benchmark_portfolios.py:61-90` (`main`) |
+
 ## 5. Robustesse et tests statistiques
 
 | Ce qui a été fait | Fichier : lignes |
@@ -105,6 +113,7 @@ Fichier `tests/test_engine.py` — se lance avec `python tests/test_engine.py` :
 python src/build_panel.py          # 1. construit le panneau mensuel (données)
 python src/analysis_2008.py        # 2. analyse principale + validation + manifest + figures
 python src/single_alternatives.py  # 3. Étape A : une alternative à la fois
+python src/benchmark_portfolios.py # 3b. benchmarks : actions / cash / asymétrique
 python src/robustness.py           # 4. bootstrap + sensibilités + stress + catégorie-vs-granulaire
 python src/appendix_optimization.py# 5. Étape C : optimiseur (annexe)
 python src/figures_these.py        # 6. figures T1–T4 de la thèse
