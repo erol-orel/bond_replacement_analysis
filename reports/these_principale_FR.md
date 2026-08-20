@@ -295,6 +295,35 @@ On laisse enfin un optimiseur choisir les poids des 42 % pour maximiser le Sharp
 d'obligations** et n'ajoute qu'un peu d'or. Il ne remplace jamais les obligations en totalité —
 même message que les Étapes A et B, par une méthode totalement différente.
 
+### Benchmarks de comparaison — les trois objections naturelles
+
+Avant de conclure, on ferme les trois questions qu'un lecteur poserait : *« et si on mettait
+simplement plus d'actions ? »*, *« et si on restait en cash ? »*, *« pourquoi tout remplacer si
+seules les obligations mondiales souffrent ? »* (`analysis/benchmark_portfolios.csv`) :
+
+| 100 % des obligations → | CAGR | Vol | Sharpe | Pire perte | CVaR 95 % |
+|---|---|---|---|---|---|
+| **AP5 (référence)** | 3,55 % | 7,7 % | 0,48 | −20,3 % | −5,2 % |
+| Mix égal des 6 alternatives | 4,28 % | 10,0 % | 0,46 | −28,0 % | −7,1 % |
+| **Actions (mix AP5)** | 6,04 % | 13,5 % | 0,50 | **−36,0 %** | −9,1 % |
+| **Cash** | 3,07 % | 7,4 % | 0,43 | −20,9 % | −5,0 % |
+| **Seules les oblig. mondiales → mix égal (suisses gardées)** | 4,07 % | 9,1 % | **0,48** | −24,9 % | −6,4 % |
+
+Trois enseignements :
+
+1. **Le mix d'alternatives ne bat pas de simples actions en rendement ajusté au risque** (Sharpe
+   0,46 contre 0,50) : le surplus de rendement des alternatives est, pour l'essentiel, du **risque
+   de marché déguisé**. Leur seul apport spécifique par rapport aux actions est une pire perte
+   moins profonde (−28 % contre −36 %). Le mix trié (0,52) fait à peine mieux que les actions.
+2. **Les alternatives battent le cash** (0,46–0,52 contre 0,43) : remplacer par les alternatives
+   n'est pas absurde, c'est simplement dominé par « garder les obligations ».
+3. **Le remplacement asymétrique est le meilleur compromis de la famille** : remplacer *seulement*
+   les obligations mondiales (celles qui souffrent des hausses de taux) et garder les suisses
+   capture la majeure partie du gain de rendement (+0,5 pt sur +0,7 pt) avec un Sharpe **préservé**
+   (0,48 = AP5) et une pire perte nettement moins dégradée (−24,9 % contre −28,0 % pour le
+   remplacement total). C'est cohérent avec l'analyse par régime (§ II) : le problème de duration
+   est concentré dans la poche mondiale.
+
 ### Recommandation finale
 
 Le résultat central se lit d'un coup d'œil sur la **courbe de compromis** (**figure T2**) : chaque
@@ -305,7 +334,9 @@ même chose : les remplacements finissent plus haut mais avec des chutes plus pr
 - **Ne pas remplacer les obligations en totalité.** Cela aggrave la pire perte et la perte extrême
   sans gain de Sharpe fiable, et retire la protection de type 2020.
 - Un remplacement **partiel** est un **compromis de budget de risque** (plus de rendement contre
-  plus de risque baissier), pas une optimisation.
+  plus de risque baissier), pas une optimisation. Si un remplacement est fait, la variante la plus
+  défendable est **asymétrique** : remplacer les obligations **mondiales** (le canal de duration
+  qui souffre des hausses) et **garder les suisses** — Sharpe préservé, downside moins dégradé.
 - L'ajout le plus utile historiquement est **un peu d'or, à côté des obligations** — un pari
   concentré, à stresser avant tout usage.
 - **Conserver la structure obligataire** (suisses + mondiales, longues + courtes) : elles se

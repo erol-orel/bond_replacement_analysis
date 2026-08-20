@@ -197,6 +197,35 @@ régime (CAGR/Vol/Sharpe/MaxDD) est dans les fichiers `regime_*.csv`.
 **Source :** `analysis/appendix_optimisation_perf.csv` et `..._weights.csv` · **Code :**
 `src/appendix_optimization.py:52-87`, algorithme `src/optimize.py:80` (`optimise`).
 
+## 8b. Benchmarks de comparaison (actions, cash, remplacement asymétrique)
+
+Trois portefeuilles de contrôle, mêmes hypothèses que tout le reste :
+
+| 100 % des obligations → | CAGR | Vol | Sharpe | Pire perte | CVaR 95 % |
+|---|---|---|---|---|---|
+| AP5 (référence) | 3,55 % | 7,70 % | 0,483 | −20,3 % | −5,24 % |
+| Mix égal des 6 alternatives | 4,28 % | 10,05 % | 0,461 | −28,0 % | −7,12 % |
+| **Actions (mix AP5 renormalisé)** | 6,04 % | 13,54 % | 0,497 | −36,0 % | −9,12 % |
+| **Cash (BNS)** | 3,07 % | 7,44 % | 0,434 | −20,9 % | −5,04 % |
+| **Oblig. mondiales seules → mix égal (suisses gardées)** | 4,07 % | 9,05 % | 0,479 | −24,9 % | −6,35 % |
+
+Sharpe par dose (25/50/75/100 % ; les colonnes de pire perte sont dans le CSV) :
+
+| Benchmark | 25 % | 50 % | 75 % | 100 % |
+|---|---|---|---|---|
+| Obligations → actions | 0,489 | 0,494 | 0,496 | 0,497 |
+| Obligations → cash | 0,474 | 0,458 | 0,447 | 0,434 |
+| Oblig. mondiales seules → mix égal | 0,484 | 0,482 | 0,482 | 0,479 |
+
+*Lecture : le mix d'alternatives ne bat pas de simples actions en Sharpe (0,46 < 0,50) — son
+surplus de rendement est surtout du risque de marché ; il bat en revanche le cash (0,43) ; et le
+remplacement **asymétrique** (mondiales seulement) préserve le Sharpe de l'AP5 (0,48) avec un
+downside moins dégradé que le remplacement total.*
+
+**Source :** `analysis/benchmark_portfolios.csv` et `benchmark_portfolios_sweep.csv` · **Code :**
+`src/benchmark_portfolios.py:43-51` (`world_only_book`), `:54-58` (définition des trois
+benchmarks), `:61-90` (`main`).
+
 ## 9. Robustesse statistique — bootstrap (3 000 rejeux)
 
 Différences (remplacement − AP5). « P(…) » = probabilité que la différence aille dans ce sens.
@@ -282,6 +311,7 @@ dépend pas de l'architecture.* **Source :** `analysis/robustness_granular_vs_ca
 | Étape A (une alternative) | `single_alt_full_replacement.csv` | `single_alternatives.py:47-58` |
 | Étape A (par dose) | `single_alt_sweep.csv` | `single_alternatives.py:60-71` |
 | Mélanges (trié vs égal) | `curated_vs_naive.csv` | `analysis_2008.py:337-349` |
+| Benchmarks (actions / cash / asymétrique) | `benchmark_portfolios.csv` (+ `_sweep`) | `benchmark_portfolios.py:43-90` |
 | Optimisations (perf) | `appendix_optimisation_perf.csv` | `appendix_optimization.py:52-87` |
 | Optimisations (poids) | `appendix_optimisation_weights.csv` | `appendix_optimization.py:52-87` |
 | Bootstrap | `robustness_bootstrap_ci.csv` | `robustness.py:83-118` |
